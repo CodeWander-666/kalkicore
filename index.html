@@ -181,6 +181,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            /* Transition smoothed by JS */
         }
     </style>
 
@@ -310,9 +311,7 @@
 
         <!-- 1ST SECTION: 3D INTERACTIVE TEXT (SIDDHI AI) -->
         <section id="hero-text-3d" class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden interactive-ui border-b border-textmain/10 bg-transparent">
-            <!-- Dedicated canvas container for the 3D Text -->
             <div id="text-canvas-container" class="absolute inset-0 cursor-ew-resize"></div>
-            
             <div class="absolute bottom-16 left-1/2 -translate-x-1/2 text-center pointer-events-none w-full px-6 z-10">
                 <h2 class="text-3xl md:text-4xl font-light text-textmain tracking-[0.4em] uppercase drop-shadow-2xl">
                     Grow Your <span class="text-accent font-bold">Business</span>
@@ -356,7 +355,7 @@
             </div>
         </section>
 
-        <!-- Unfair Advantages (10 Benefits) -->
+        <!-- Unfair Advantages (Expanded to 10 Benefits) -->
         <section id="benefits" class="py-32 relative border-y border-textmain/10 bg-obsidian/20 backdrop-blur-sm">
             <div class="max-w-[90rem] mx-auto px-6 interactive-ui">
                 <div class="text-center max-w-3xl mx-auto mb-20 gsap-reveal">
@@ -523,7 +522,7 @@
                     </div>
                     <div id="formStatus" class="hidden mb-8 p-4 rounded-lg text-[10px] uppercase tracking-widest font-bold text-center border"></div>
                     <button type="submit" id="submitBtn" class="w-full bg-textmain hover:bg-accent text-obsidian font-black py-5 rounded-full text-[11px] uppercase tracking-[0.25em] transition-all flex items-center justify-center gap-3 shadow-lg btn-creepy">
-                        <span id="btnText" class="btn-text-content"><i data-lucide="send" id="btnIcon" class="w-4 h-4"></i> Send Message</span>
+                        <span id="btnText" class="btn-text-content"><i data-lucide="send" id="btnIcon" class="w-4 h-4"></i> Transmit Data</span>
                         <div class="eyes-wrapper">
                             <div class="creepy-eye"><div class="creepy-pupil"></div></div>
                             <div class="creepy-eye"><div class="creepy-pupil"></div></div>
@@ -857,7 +856,7 @@
             return new THREE.Vector3(-(radius * Math.sin(phi) * Math.cos(theta)), radius * Math.cos(phi), radius * Math.sin(phi) * Math.sin(theta));
         }
 
-        // GENERATE 66 GLOBE NODES WITH REVIEWS
+        // GENERATE 66 GLOBE NODES
         const baseLocs = [
             { name: "New York", client: "Apex Finance Hub", review: "Incredible growth! ⭐⭐⭐⭐⭐", lat: 40.71, lon: -74.00 },
             { name: "London", client: "Global Dynamics", review: "Brilliant design! ⭐⭐⭐⭐⭐", lat: 51.50, lon: -0.12 },
@@ -878,12 +877,12 @@
 
         for (let i = 0; i < 66; i++) {
             const base = baseLocs[i % baseLocs.length];
-            const latOffset = (Math.random() - 0.5) * 10;
-            const lonOffset = (Math.random() - 0.5) * 10;
+            const latOffset = (Math.random() - 0.5) * 15;
+            const lonOffset = (Math.random() - 0.5) * 15;
             
             const nodeData = {
                 name: base.name,
-                client: base.client + (i > baseLocs.length ? ` ${i}` : ''),
+                client: base.client + (i >= baseLocs.length ? ` ${i}` : ''),
                 review: base.review,
                 lat: base.lat + latOffset,
                 lon: base.lon + lonOffset
@@ -1076,4 +1075,110 @@
             cameraText.aspect = textCont.clientWidth / textCont.clientHeight; cameraText.updateProjectionMatrix(); rendererText.setSize(textCont.clientWidth, textCont.clientHeight);
             cameraBg.aspect = window.innerWidth / window.innerHeight; cameraBg.updateProjectionMatrix(); rendererBg.setSize(window.innerWidth, window.innerHeight);
             if(globeCont.clientWidth) { cameraGlobe.aspect = globeCont.clientWidth / globeCont.clientHeight; cameraGlobe.updateProjectionMatrix(); rendererGlobe.setSize(globeCont.clientWidth, globeCont.clientHeight); }
-            if(decalCont.clientWidth) { cameraDecal.aspect = decalCont.clientWidth
+            if(decalCont.clientWidth) { cameraDecal.aspect = decalCont.clientWidth / decalCont.clientHeight; cameraDecal.updateProjectionMatrix(); rendererDecal.setSize(decalCont.clientWidth, decalCont.clientHeight); }
+        });
+
+        function masterLoop() {
+            requestAnimationFrame(masterLoop);
+            const time = globalClock.getElapsedTime();
+            updateTextScene();
+            updateBg(time);
+            updateGlobe(time);
+            updateDecal();
+        }
+        masterLoop(); 
+
+        /* ==========================================
+           5. UI BUTTONS & GSAP SCROLL LOGIC
+        ========================================== */
+        const uiLayer = document.getElementById('ui-layer'), exploreBtn = document.getElementById('explore-btn'), exitBtn = document.getElementById('exit-interactive');
+        exploreBtn.addEventListener('click', () => {
+            isInteractiveMode = true; uiLayer.classList.add('hidden-ui'); exitBtn.classList.remove('hidden');
+            gsap.to(cameraBg.position, { x: 0, y: (camVars.y < -1000 ? -1995 : 8), z: (camVars.y < -1000 ? 5 : 15), duration: 2, ease: "power3.inOut" });
+        });
+        exitBtn.addEventListener('click', () => {
+            isInteractiveMode = false; uiLayer.classList.remove('hidden-ui'); exitBtn.classList.add('hidden');
+        });
+
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.fromTo(".gsap-hero", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: "power2.out" });
+        gsap.utils.toArray('.gsap-reveal').forEach(el => { gsap.fromTo(el, { y: 40, opacity: 0 }, { scrollTrigger: { trigger: el, start: "top 85%" }, y: 0, opacity: 1, duration: 1, ease: "power2.out" }); });
+        gsap.fromTo(".gsap-card", { y: 50, opacity: 0 }, { scrollTrigger: { trigger: "#architectures", start: "top 70%" }, y: 0, opacity: 1, duration: 1, stagger: 0.2 });
+
+        gsap.to(camVars, {
+            y: -1990, z: 80, lookY: -1990, ease: "power2.inOut",
+            scrollTrigger: { trigger: "#testimonials", start: "top center", endTrigger: "#ocean-view", end: "bottom bottom", scrub: true,
+                onUpdate: () => { 
+                    rendererBg.toneMappingExposure = camVars.y < -1000 ? 1.5 : 1.0; 
+                    const ov = document.getElementById('ocean-view');
+                    if(camVars.y < -1900) ov.classList.remove('opacity-0'); else ov.classList.add('opacity-0');
+                }
+            }
+        });
+
+        /* ==========================================
+           6. LIQUID TILT & MARQUEE GENERATOR
+        ========================================== */
+        const fNames = ["Alex", "Priya", "James", "Elena", "Vikram", "Sarah", "Rahul", "Emma", "Neha", "Michael"];
+        const lNames = ["M.", "Sharma", "K.", "Rodriguez", "S.", "Chen", "Verma", "L.", "Patel", "B."];
+        const companies = ["TechCorp", "InnovateX", "Global Dynamics", "Apex Solutions", "Quantum AI"];
+        const reviews = ["Incredible design.", "Flawless execution.", "Highest converting site ever.", "Impenetrable security.", "A digital masterpiece."];
+
+        const cardsHTML = [];
+        for(let i=0; i<50; i++) {
+            const name = fNames[Math.floor(Math.random()*fNames.length)] + " " + lNames[Math.floor(Math.random()*lNames.length)];
+            const company = companies[Math.floor(Math.random()*companies.length)];
+            const review = reviews[Math.floor(Math.random()*reviews.length)];
+            cardsHTML.push(`<div class="tilt-wrapper testimonial-item interactive-ui"><div class="rgb-card"><div class="rgb-content"><div class="flex items-center gap-1 mb-3">${'<i data-lucide="star" class="w-3 h-3 text-accent fill-accent"></i>'.repeat(5)}</div><p class="text-xs text-textmuted font-light italic leading-relaxed flex-1">"${review}"</p><div class="mt-4 border-t border-textmain/10 pt-3"><h4 class="text-sm font-bold text-textmain">${name}</h4><p class="text-[9px] text-textmuted uppercase tracking-widest">${company}</p></div></div></div></div>`);
+        }
+        const finalCard = `<div class="tilt-wrapper testimonial-item flex items-center justify-center interactive-ui"><div class="rgb-card !border-accent/30"><div class="rgb-content items-center justify-center text-center"><h3 class="text-4xl font-serif text-textmain mb-2">+2338</h3><p class="text-[10px] text-accent font-bold uppercase tracking-[0.2em]">More verified clients</p></div></div></div>`;
+
+        document.getElementById('testimonial-track-1').innerHTML = cardsHTML.slice(0, 25).join('').repeat(2);
+        document.getElementById('testimonial-track-2').innerHTML = (cardsHTML.slice(25, 50).join('') + finalCard).repeat(2);
+        lucide.createIcons();
+
+        setTimeout(() => {
+            document.querySelectorAll('.rgb-card').forEach(card => {
+                const content = card.querySelector('.rgb-content');
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+                    card.style.transform = `rotateX(${(((y - (rect.height / 2)) / (rect.height / 2)) * -10).toFixed(2)}deg) rotateY(${(((x - (rect.width / 2)) / (rect.width / 2)) * 10).toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
+                    card.style.zIndex = "50"; content.style.backgroundImage = `radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.15), rgba(255,255,255,0.02) 40%, transparent 70%)`;
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'rotateX(0) rotateY(0) scale3d(1, 1, 1)'; card.style.zIndex = "1"; content.style.backgroundImage = `radial-gradient(circle at 50% 0%, rgba(255,255,255,0.05), transparent 70%)`;
+                });
+            });
+        }, 500);
+
+        /* ==========================================
+           7. GOOGLE SHEETS FORM ENGINE (EXPLICIT DATA)
+        ========================================== */
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwuwVFdFZGM9C9IIFo4siP2VlMffCRtN9OIC3IC1U0UlWWDYycem07CnVEfLYFdnB8qdA/exec';
+        const form = document.getElementById('leadForm');
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn'), txt = document.getElementById('btnText'), ico = document.getElementById('btnIcon'), status = document.getElementById('formStatus');
+            btn.disabled = true; txt.innerText = "Sending..."; ico.setAttribute('data-lucide', 'loader-2'); ico.classList.add('animate-spin'); lucide.createIcons(); status.classList.add('hidden');
+            
+            // EXPLICITLY map the required URLSearchParams for Apps Script (Date, Name, Contact, Service, Message)
+            const payload = new URLSearchParams();
+            payload.append("Date", new Date().toISOString());
+            payload.append("Name", form.Name.value);
+            payload.append("Contact", form.Contact.value);
+            payload.append("Service", form.Service.value);
+            payload.append("Message", form.Message.value);
+
+            fetch(scriptURL, { method: 'POST', body: payload, mode: 'no-cors' })
+            .then(() => {
+                txt.innerText = "Message Sent"; status.innerText = "Successfully logged in Google Sheets."; status.className = "mb-8 p-4 rounded-lg text-[10px] uppercase tracking-widest font-bold text-center border border-green-500/30 text-green-400 bg-green-500/10 block"; form.reset();
+                setTimeout(() => { btn.disabled = false; txt.innerText = "Send Message"; ico.setAttribute('data-lucide', 'send'); ico.classList.remove('animate-spin'); lucide.createIcons(); }, 3000);
+            })
+            .catch(error => {
+                status.innerText = "Network Error Occurred."; status.className = "mb-8 p-4 rounded-lg text-[10px] uppercase tracking-widest font-bold text-center border border-red-500/30 text-red-400 bg-red-500/10 block";
+                btn.disabled = false; txt.innerText = "Retry Transmission"; ico.setAttribute('data-lucide', 'refresh-ccw'); ico.classList.remove('animate-spin'); lucide.createIcons();
+            });
+        });
+    </script>
+</body>
+</html>
