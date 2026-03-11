@@ -441,8 +441,8 @@
 
         <!-- 1ST SECTION: 3D INTERACTIVE TEXT with Liquid Metallic Shine, Smaller Size, Auto-Rotate on Mobile -->
         <section id="hero-text-3d" class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden interactive-ui border-b border-textmain/10 bg-transparent">
-            <!-- Dedicated canvas container for the 3D Text -->
-            <div id="text-canvas-container" class="absolute inset-0" style="touch-action: none;"></div>
+            <!-- Dedicated canvas container for the 3D Text - allow vertical scroll on mobile -->
+            <div id="text-canvas-container" class="absolute inset-0" style="touch-action: pan-y;"></div>
             
             <div class="absolute bottom-16 left-1/2 -translate-x-1/2 text-center pointer-events-none w-full px-6 z-10">
                 <h2 class="text-3xl md:text-4xl font-light text-textmain tracking-[0.4em] uppercase drop-shadow-2xl">
@@ -970,7 +970,7 @@
         }
 
         /* ==========================================
-           1. MAIN BACKGROUND ENVIRONMENT (unchanged)
+           1. MAIN BACKGROUND ENVIRONMENT (optimized for mobile)
         ========================================== */
         const canvasBg = document.getElementById('webgl-canvas');
         const rendererBg = new THREE.WebGLRenderer({ canvas: canvasBg, antialias: true, alpha: true });
@@ -989,12 +989,14 @@
         controlsBg.enableDamping = true; controlsBg.dampingFactor = 0.05; controlsBg.enablePan = false; controlsBg.autoRotate = false; 
         controlsBg.autoRotateSpeed = 1.0;
 
-        const knotGeo = new THREE.TorusKnotGeometry(4, 1.2, 64, 16);
+        // Reduce geometry detail on mobile
+        const knotGeo = new THREE.TorusKnotGeometry(4, 1.2, isMobile ? 64 : 128, isMobile ? 16 : 32);
         const knotMat = new THREE.MeshPhysicalMaterial({ color: currAccentHex, metalness: 1.0, roughness: 0.1, clearcoat: 1.0, envMap: envTexBg, envMapIntensity: 1.5 });
         const torusKnot = new THREE.Mesh(knotGeo, knotMat);
         sceneBg.add(torusKnot);
 
-        const pointLightsMax = isMobile ? 12 : 60; 
+        // Reduce point lights on mobile
+        const pointLightsMax = isMobile ? 8 : 60; 
         const lightingUniformsGroup = new THREE.UniformsGroup(); lightingUniformsGroup.setName('LightingData');
         const lightData = []; const lightColorsData = []; const lightCenters = [];
 
@@ -1024,9 +1026,10 @@
         plane.material.uniforms.normalMatrix.value = plane.normalMatrix;
         plane.rotation.x = -Math.PI / 2; plane.position.y = -10; sceneBg.add(plane);
 
-        const gridSize = isMobile ? 3 : 8;
+        // Reduce grid spheres on mobile
+        const gridSize = isMobile ? 2 : 8;
         const gridGroup = new THREE.Group();
-        const sphereGeo = new THREE.SphereGeometry(1.5, 8, 8);
+        const sphereGeo = new THREE.SphereGeometry(1.5, isMobile ? 6 : 8, isMobile ? 6 : 8);
         for (let i = 0; i < gridSize; i++) { for (let k = 0; k < gridSize; k++) {
             const mesh = new THREE.Mesh(sphereGeo, rawMat.clone());
             mesh.material.uniformsGroups = [cameraUniformsGroup, lightingUniformsGroup];
@@ -1073,7 +1076,7 @@
         }
 
         /* ==========================================
-           2. SEPARATE GLOBE SCENE LOGIC (unchanged)
+           2. SEPARATE GLOBE SCENE LOGIC (optimized for mobile)
         ========================================== */
         const globeCont = document.getElementById('globe-canvas-container');
         const rendererGlobe = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -1090,7 +1093,7 @@
         controlsGlobe.autoRotate = true; controlsGlobe.autoRotateSpeed = 1.0;
         controlsGlobe.enableZoom = false; controlsGlobe.enablePan = false;
 
-        const starCount = isMobile ? 150 : 500;
+        const starCount = isMobile ? 100 : 500;
         const starGeo = new THREE.BufferGeometry();
         const starPos = new Float32Array(starCount * 3);
         for(let i=0; i<starCount*3; i++) starPos[i] = (Math.random() - 0.5) * 40;
@@ -1110,7 +1113,7 @@
         const moonMap = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/r160/examples/textures/planets/moon_1024.jpg'); moonMap.colorSpace = THREE.SRGBColorSpace;
 
         const globeRadius = 5.5;
-        const earthGeo = new THREE.SphereGeometry(globeRadius, 48, 32);
+        const earthGeo = new THREE.SphereGeometry(globeRadius, isMobile ? 32 : 48, isMobile ? 24 : 32);
         const earthMat = new THREE.MeshPhongMaterial({
             map: earthMap, specularMap: earthSpec, normalMap: earthNormal,
             specular: new THREE.Color(0x7c7c7c), shininess: 15, normalScale: new THREE.Vector2(0.85, -0.85) 
@@ -1118,12 +1121,12 @@
         const earth = new THREE.Mesh(earthGeo, earthMat);
         sceneGlobe.add(earth);
 
-        const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(globeRadius + 0.05, 48, 32), new THREE.MeshLambertMaterial({
+        const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(globeRadius + 0.05, isMobile ? 32 : 48, isMobile ? 24 : 32), new THREE.MeshLambertMaterial({
             map: cloudMap, transparent: true, opacity: 0.8, blending: THREE.NormalBlending, depthWrite: false
         }));
         earth.add(cloudMesh);
 
-        const moon = new THREE.Mesh(new THREE.SphereGeometry(globeRadius * 0.25, 24, 16), new THREE.MeshPhongMaterial({ map: moonMap }));
+        const moon = new THREE.Mesh(new THREE.SphereGeometry(globeRadius * 0.25, isMobile ? 16 : 24, isMobile ? 12 : 16), new THREE.MeshPhongMaterial({ map: moonMap }));
         sceneGlobe.add(moon);
 
         function calcPosFromLatLonRad(lat, lon, radius) {
@@ -1162,11 +1165,11 @@
                 lon: base.lon + lonOffset
             };
 
-            const node = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), nodeMatGlobe.clone());
+            const node = new THREE.Mesh(new THREE.SphereGeometry(0.08, isMobile ? 6 : 8, isMobile ? 6 : 8), nodeMatGlobe.clone());
             node.position.copy(calcPosFromLatLonRad(nodeData.lat, nodeData.lon, globeRadius + 0.06));
             node.userData = nodeData;
             
-            const halo = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), new THREE.MeshBasicMaterial({ color: currTechHex, transparent: true, opacity: 0.3, depthWrite: false }));
+            const halo = new THREE.Mesh(new THREE.SphereGeometry(0.2, isMobile ? 6 : 8, isMobile ? 6 : 8), new THREE.MeshBasicMaterial({ color: currTechHex, transparent: true, opacity: 0.3, depthWrite: false }));
             node.add(halo); earth.add(node); interactableNodes.push(node); 
         }
 
