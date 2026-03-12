@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Enterprise‑grade SEO Blog Generator for SIDDHI AI
-Generates one high‑quality blog post per day, targeting the best unused keyword.
-Includes robust error handling, retries, logging, and fallbacks.
+Generates one high‑quality blog post per day.
+Now with balanced scoring to favor local Indian locations.
 """
 
 import os
@@ -40,14 +40,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ---------- FALLBACK LSI KEYWORDS (if Datamuse fails) ----------
+FALLBACK_LSI = {
+    "Web Development": ["frontend", "backend", "full stack", "HTML", "CSS", "JavaScript", "React", "Node.js", "API", "database"],
+    "Digital Marketing": ["SEO", "PPC", "social media", "email marketing", "content marketing", "analytics", "conversion", "lead generation"],
+    "SEO Services": ["search engine optimization", "keywords", "backlinks", "ranking", "Google", "local SEO", "on-page", "off-page"],
+    "Python Training": ["Python basics", "Django", "Flask", "data science", "machine learning", "pandas", "numpy", "automation"],
+    "AI Solutions": ["machine learning", "deep learning", "neural networks", "NLP", "computer vision", "chatbots", "predictive analytics"],
+    "E-commerce Website": ["online store", "shopping cart", "payment gateway", "product catalog", "inventory", "WooCommerce", "Shopify"],
+    "Content Marketing": ["blog posts", "articles", "white papers", "infographics", "video", "storytelling", "brand awareness"],
+    "Social Media Marketing": ["Facebook", "Instagram", "Twitter", "LinkedIn", "engagement", "followers", "posts", "ads"],
+    "Mobile App Development": ["iOS", "Android", "React Native", "Flutter", "UI/UX", "app store", "mobile design"],
+    "Cloud Consulting": ["AWS", "Azure", "Google Cloud", "migration", "serverless", "scalability", "cost optimization"],
+    "Data Analytics": ["data visualization", "business intelligence", "Tableau", "Power BI", "SQL", "big data", "insights"],
+    "UI/UX Design": ["user interface", "user experience", "wireframes", "prototyping", "usability", "Figma", "Sketch"],
+    "Branding": ["logo design", "brand identity", "style guide", "messaging", "positioning", "visual identity"],
+    "PPC Advertising": ["Google Ads", "pay per click", "campaign management", "ad copy", "keywords", "ROI", "conversion tracking"],
+    "Email Marketing": ["newsletter", "automation", "subscribers", "open rates", "click through", "Mailchimp", "SendGrid"]
+}
+
 # ---------- DATA (expand as needed) ----------
-TOPICS = [
-    "Web Development", "Digital Marketing", "SEO Services",
-    "Python Training", "AI Solutions", "E-commerce Website",
-    "Content Marketing", "Social Media Marketing",
-    "Mobile App Development", "Cloud Consulting", "Data Analytics",
-    "UI/UX Design", "Branding", "PPC Advertising", "Email Marketing"
-]
+TOPICS = list(FALLBACK_LSI.keys())
 
 GLOBAL = ["United States", "Canada", "United Kingdom", "Australia", "New Zealand"]
 COUNTRY = "India"
@@ -74,6 +87,15 @@ MODIFIER_BONUS = {
     "best": 2.0, "top": 2.0, "affordable": 1.5, "cheap": 1.5,
     "near me": 2.5, "review": 1.8, "vs": 1.8, "how to": 2.0,
     "guide": 1.5, "tutorial": 1.5
+}
+
+# Opportunity scores (adjusted to favor local)
+OPPORTUNITY_POP = {
+    "global": 500,    # Reduced from 1000 to encourage local
+    "country": 500,   # India
+    "state": 300,
+    "city": 200,
+    "area": 100
 }
 
 # ---------- UTILITY FUNCTIONS ----------
@@ -116,7 +138,7 @@ def fetch_with_retry(url: str, max_retries: int = 3, backoff: float = 1.0) -> Op
                 return None
 
 def fetch_lsi_keywords(phrase: str, max_results: int = 10) -> List[str]:
-    """Fetch semantically related keywords from Datamuse."""
+    """Fetch semantically related keywords from Datamuse. Falls back to static list on failure."""
     try:
         url = f"https://api.datamuse.com/words?ml={phrase}&max={max_results}"
         data = fetch_with_retry(url)
@@ -124,10 +146,12 @@ def fetch_lsi_keywords(phrase: str, max_results: int = 10) -> List[str]:
             return [item['word'] for item in data if 'word' in item]
     except Exception as e:
         logger.exception(f"Unexpected error in fetch_lsi_keywords for '{phrase}': {e}")
-    return []
+    # Fallback to static list
+    logger.info(f"Using fallback LSI for '{phrase}'")
+    return FALLBACK_LSI.get(phrase, ["guide", "tips", "services", "company", "experts"])[:max_results]
 
 def fetch_related_phrases(phrase: str, max_results: int = 5) -> List[str]:
-    """Fetch topic‑related phrases from Datamuse."""
+    """Fetch topic‑related phrases from Datamuse. Falls back to static list."""
     try:
         url = f"https://api.datamuse.com/words?topics={phrase}&max={max_results}"
         data = fetch_with_retry(url)
@@ -135,7 +159,7 @@ def fetch_related_phrases(phrase: str, max_results: int = 5) -> List[str]:
             return [item['word'] for item in data if 'word' in item]
     except Exception as e:
         logger.exception(f"Unexpected error in fetch_related_phrases for '{phrase}': {e}")
-    return []
+    return FALLBACK_LSI.get(phrase, ["resources", "solutions", "providers"])[:max_results]
 
 # ---------- KEYWORD GENERATION & SCORING ----------
 def generate_keyword_candidates() -> List[Dict]:
@@ -197,8 +221,7 @@ def score_keyword(kw: Dict) -> float:
 
 def opportunity_score(kw: Dict) -> float:
     """Estimate traffic potential (higher = better)."""
-    pop = {"global": 1000, "country": 500, "state": 200, "city": 100, "area": 30}
-    base = pop.get(kw["loc_type"], 50)
+    base = OPPORTUNITY_POP.get(kw["loc_type"], 50)
     mod_boost = 1.0 if kw["modifier"] else 0.5
     return base * mod_boost
 
@@ -262,170 +285,12 @@ def detect_pillars(keywords: List[Dict]) -> None:
     logger.info("Pillar detection completed.")
 
 # ---------- CONTENT GENERATION ----------
-def get_header_footer_templates() -> Tuple[str, str]:
-    """
-    Return header and footer HTML strings.
-    IMPORTANT: Replace the placeholder styles/scripts with your actual site's code.
-    """
-    # ====== PASTE YOUR EXACT HEADER HTML HERE (from blog/index.html) ======
-    header = """<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <meta name="google-site-verification" content="mXzGHeQy9yGNuw8JTuzgXdDUn-gUcj4C65Jt83rcK9A" />
-    <meta name="description" content="SEO_DESCRIPTION">
-    <meta name="keywords" content="SEO_KEYWORDS">
-    <meta name="author" content="SIDDHI AI">
-    <link rel="canonical" href="CANONICAL_URL">
-    <title>PAGE_TITLE</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3Cfilter id='glow' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='5' result='blur'/%3E%3CfeMerge%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='blur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Crect width='100' height='100' fill='%23020203' rx='15'/%3E%3Ctext x='50' y='75' font-family='sans-serif' font-size='72' font-style='italic' font-weight='normal' fill='%23E5B769' text-anchor='middle' filter='url(%23glow)'%3EAI%3C/text%3E%3Ctext x='50' y='75' font-family='sans-serif' font-size='72' font-style='italic' font-weight='normal' fill='%23FFF8DC' text-anchor='middle'%3EAI%3C/text%3E%3C/svg%3E">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    <style>
-        /* ========== PASTE YOUR EXACT STYLES HERE ========== */
-        :root {
-            --bg-rgb: 2, 2, 3;
-            --accent-rgb: 229, 183, 105;
-            --tech-rgb: 0, 240, 255;
-            --text-rgb: 229, 231, 235;
-            --text-muted-rgb: 156, 163, 175;
-            --card-bg: rgba(8, 8, 10, 0.75);
-            --tooltip-bg: rgba(2, 2, 3, 0.95);
-        }
-        /* ... rest of your CSS ... */
-    </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        obsidian: 'rgba(var(--bg-rgb), <alpha-value>)',
-                        accent: 'rgba(var(--accent-rgb), <alpha-value>)',
-                        tech: 'rgba(var(--tech-rgb), <alpha-value>)',
-                        textmain: 'rgba(var(--text-rgb), <alpha-value>)',
-                        textmuted: 'rgba(var(--text-muted-rgb), <alpha-value>)',
-                    },
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        serif: ['"Playfair Display"', 'serif'],
-                    }
-                }
-            }
-        }
-        function changeTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            window.dispatchEvent(new CustomEvent('themeChanged', { detail: theme }));
-        }
-    </script>
-    <script id="vertexShader" type="x-shader/x-vertex">/* ... */</script>
-    <script id="fragmentShader" type="x-shader/x-fragment">/* ... */</script>
-    <script type="importmap">{}</script>
-</head>
-<body>
-    <canvas id="webgl-canvas"></canvas>
-    <div class="ambient-overlay"></div>
-    <div id="ui-layer" class="relative z-10 w-full">
-        <!-- NAVBAR (adjust links to point to ../../index.html) -->
-        <nav class="fixed w-full z-50 transition-all duration-300 interactive-ui backdrop-blur-md border-b border-textmain/10 bg-obsidian/40" id="navbar">
-            <div class="max-w-7xl mx-auto px-6 lg:px-12">
-                <div class="flex justify-between items-center h-20">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="cpu" class="text-accent w-6 h-6"></i>
-                        <span class="font-extrabold text-xl tracking-tighter text-textmain">SIDDHI <span class="text-accent">AI</span></span>
-                    </div>
-                    <div class="hidden md:flex items-center space-x-6">
-                        <a href="../../index.html" class="text-[10px] uppercase tracking-[0.2em] font-bold text-textmuted hover:text-accent transition-colors">Home</a>
-                        <a href="#blog-posts" class="text-[10px] uppercase tracking-[0.2em] font-bold text-textmuted hover:text-accent transition-colors">Articles</a>
-                        <a href="#faq" class="text-[10px] uppercase tracking-[0.2em] font-bold text-textmuted hover:text-accent transition-colors">FAQs</a>
-                        <!-- Theme toggles -->
-                        <div class="flex items-center gap-2 ml-4 border-l border-textmuted/30 pl-6">
-                            <button onclick="changeTheme('dark')" class="w-4 h-4 rounded-full bg-[#020203] border-2 border-gray-500 hover:scale-110 transition-transform shadow-lg" title="Dark Theme"></button>
-                            <button onclick="changeTheme('rich')" class="w-4 h-4 rounded-full bg-[#1a0b2e] border-2 border-[#d4af37] hover:scale-110 transition-transform shadow-lg" title="Rich Theme"></button>
-                            <button onclick="changeTheme('sunny')" class="w-4 h-4 rounded-full bg-[#e0f2fe] border-2 border-[#f59e0b] hover:scale-110 transition-transform shadow-lg" title="Sunny Theme"></button>
-                        </div>
-                    </div>
-                    <a href="../../index.html#contact" class="hidden md:flex bg-accent text-obsidian px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:bg-textmain shadow-[0_0_20px_rgba(var(--accent-rgb),0.2)] btn-creepy">
-                        <span class="btn-text-content">Start Project</span>
-                        <div class="eyes-wrapper">
-                            <div class="creepy-eye"><div class="creepy-pupil"></div></div>
-                            <div class="creepy-eye"><div class="creepy-pupil"></div></div>
-                        </div>
-                    </a>
-                    <!-- Mobile menu toggle -->
-                    <button class="mobile-menu-toggle md:hidden text-textmain p-2 focus:outline-none" id="mobileMenuToggle">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-                    </button>
-                </div>
-            </div>
-        </nav>
-        <!-- Mobile menu overlay -->
-        <div class="mobile-menu-overlay" id="mobileMenuOverlay">
-            <button class="menu-close-btn" id="mobileMenuClose">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-            <a href="../../index.html" class="mobile-menu-item">Home</a>
-            <a href="#blog-posts" class="mobile-menu-item">Articles</a>
-            <a href="#faq" class="mobile-menu-item">FAQs</a>
-            <div class="mobile-theme-toggles">
-                <button onclick="changeTheme('dark');" class="w-8 h-8 rounded-full bg-[#020203] border-2 border-gray-500" title="Dark Theme"></button>
-                <button onclick="changeTheme('rich');" class="w-8 h-8 rounded-full bg-[#1a0b2e] border-2 border-[#d4af37]" title="Rich Theme"></button>
-                <button onclick="changeTheme('sunny');" class="w-8 h-8 rounded-full bg-[#e0f2fe] border-2 border-[#f59e0b]" title="Sunny Theme"></button>
-            </div>
-            <a href="../../index.html#contact" class="mobile-start-btn">Start Project</a>
-        </div>
-"""
-    # ====== PASTE YOUR EXACT FOOTER HTML HERE ======
-    footer = """
-        <!-- FOOTER -->
-        <footer class="py-12 border-t border-textmain/10 bg-obsidian interactive-ui">
-            <div class="max-w-7xl mx-auto px-6 text-center">
-                <span class="font-extrabold text-2xl tracking-tighter text-textmain mb-6 block drop-shadow-lg">SIDDHI <span class="text-accent">AI</span></span>
-                <div class="flex flex-wrap items-center justify-center gap-6 mb-8">
-                    <a href="https://github.com/CodeWander-666-github" target="_blank" rel="noopener noreferrer" class="text-textmuted hover:text-accent transition-colors">
-                        <i data-lucide="github" class="w-6 h-6"></i>
-                    </a>
-                    <a href="#" target="_blank" rel="noopener noreferrer" class="text-textmuted hover:text-accent transition-colors">
-                        <i data-lucide="chrome" class="w-6 h-6"></i>
-                    </a>
-                    <div class="flex items-center gap-1 text-textmuted">
-                        <i data-lucide="badge-check" class="w-5 h-5 text-accent"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-wider">GST</span>
-                    </div>
-                    <div class="flex items-center gap-1 text-textmuted">
-                        <i data-lucide="badge-check" class="w-5 h-5 text-accent"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-wider">Udyam</span>
-                    </div>
-                </div>
-                <div class="flex flex-wrap items-center justify-center gap-4 mb-6 text-[9px] text-textmuted uppercase tracking-[0.2em] font-bold">
-                    <a href="../../policy.html" class="hover:text-accent transition-colors">Terms & Conditions</a>
-                    <span class="text-textmain/20">|</span>
-                    <a href="../../policy.html" class="hover:text-accent transition-colors">Privacy Policy</a>
-                </div>
-                <p class="text-[9px] text-textmuted uppercase tracking-[0.3em] font-bold drop-shadow-md">&copy; 2017-2026. Business Web Solutions.</p>
-            </div>
-        </footer>
-    </div>
-    <button id="exit-interactive" class="fixed top-8 right-8 z-[100] px-6 py-3 bg-red-500/10 border border-red-500/50 text-red-500 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-textmain transition-all duration-300 hidden cursor-pointer interactive-ui shadow-2xl backdrop-blur-md btn-creepy">
-        <span class="btn-text-content">Exit 3D Mode</span>
-        <div class="eyes-wrapper">
-            <div class="creepy-eye"><div class="creepy-pupil"></div></div>
-            <div class="creepy-eye"><div class="creepy-pupil"></div></div>
-        </div>
-    </button>
-    <div style="display:none;">python training Bhopal, digital marketing Indore, web development Gwalior, SEO Jabalpur</div>
-    <script type="module">
-        // ====== PASTE YOUR EXACT JS MODULE HERE (without the hardcoded blogPosts) ======
-        // Include all Three.js, theme switching, mobile menu, etc.
-        // Make sure to remove any hardcoded blogPosts array and the renderBlog function that uses it.
-    </script>
-</body>
-</html>
-"""
-    return header, footer
+def read_index_template() -> str:
+    """Read the existing blog/index.html file. If missing, raise error."""
+    if not os.path.exists(INDEX_FILE):
+        raise FileNotFoundError(f"{INDEX_FILE} not found. Please create it manually using the template.")
+    with open(INDEX_FILE, 'r', encoding='utf-8') as f:
+        return f.read()
 
 def generate_article_body(keyword: Dict, lsi_terms: List[str], pillar: Optional[Dict] = None) -> str:
     """Generate the main content of the article."""
@@ -514,18 +379,12 @@ def generate_blog_post(keyword: Dict, all_keywords: List[Dict]) -> str:
     canonical = f"{SITE_URL}/blog/posts/{slugify(title)}.html"
     date = datetime.datetime.now()
 
-    # Get templates
-    header, footer = get_header_footer_templates()
+    # Read the blog index template (full design)
+    template = read_index_template()
 
-    # Replace placeholders
-    header = (header
-        .replace("SEO_DESCRIPTION", meta_desc)
-        .replace("SEO_KEYWORDS", keywords_meta)
-        .replace("CANONICAL_URL", canonical)
-        .replace("PAGE_TITLE", f"{title} | SIDDHI AI Blog")
-    )
-
-    main_content = f"""
+    # Replace the main content area with the article.
+    main_pattern = r'<main[^>]*>.*?</main>'
+    article_main = f"""
     <main class="pt-32 pb-20 interactive-ui max-w-4xl mx-auto px-6">
         <article class="glass-panel p-8 md:p-12 rounded-3xl">
             <h1 class="font-serif text-4xl md:text-5xl text-textmain mb-4">{title}</h1>
@@ -534,8 +393,15 @@ def generate_blog_post(keyword: Dict, all_keywords: List[Dict]) -> str:
         </article>
     </main>
     """
+    post_html = re.sub(main_pattern, article_main, template, flags=re.DOTALL)
 
-    return header + main_content + footer
+    # Replace meta tags
+    post_html = re.sub(r'<title>.*?</title>', f'<title>{title} | SIDDHI AI Blog</title>', post_html)
+    post_html = re.sub(r'<meta name="description" content="[^"]*"', f'<meta name="description" content="{meta_desc}"', post_html)
+    post_html = re.sub(r'<meta name="keywords" content="[^"]*"', f'<meta name="keywords" content="{keywords_meta}"', post_html)
+    post_html = re.sub(r'<link rel="canonical" href="[^"]*"', f'<link rel="canonical" href="{canonical}"', post_html)
+
+    return post_html
 
 # ---------- BLOG INDEX UPDATE ----------
 def update_blog_index() -> None:
@@ -600,6 +466,11 @@ def update_blog_index() -> None:
     # Read existing index
     with open(INDEX_FILE, 'r', encoding='utf-8') as f:
         content = f.read()
+
+    # Count how many posts containers exist – should be 1
+    container_count = len(re.findall(r'<div id="postsContainer"', content))
+    if container_count != 1:
+        logger.warning(f"Found {container_count} postsContainer divs. Expected 1. Check your template.")
 
     # Replace posts container
     pattern = r'(<div id="postsContainer"[^>]*>).*?(</div>)'
