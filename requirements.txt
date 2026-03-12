@@ -1,3 +1,2 @@
-requests
-zhipuai>=2.1.0
-
+zhipuai>=2.1.5
+requests>=2.28.0
