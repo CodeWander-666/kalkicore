@@ -1,2 +1,3 @@
 requests
-zhipuai
+zhipuai>=2.1.0
+
