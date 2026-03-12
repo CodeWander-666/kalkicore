@@ -5,176 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIDDHI AI Blog - Insights & Articles</title>
     <meta name="description" content="Expert insights on Python training, digital marketing, web development, and AI solutions. SIDDHI AI's official blog with daily updates and industry trends.">
-    <meta name="keywords" content="Python training blog, digital marketing tips, web development articles, AI insights, SEO guide, Madhya Pradesh, India">
-    
     <meta property="og:title" content="SIDDHI AI Blog">
-    <meta property="og:description" content="Expert insights on Python training, digital marketing, web development, and AI solutions.">
+    <meta property="og:description" content="Expert insights and daily articles from SIDDHI AI.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://siddhiai-welcome.vercel.app/blog/">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-    
     <style>
-        :root {
-            --bg-rgb: 2, 2, 3;
-            --accent-rgb: 229, 183, 105;
-            --tech-rgb: 0, 240, 255;
-            --text-rgb: 229, 231, 235;
-            --text-muted-rgb: 156, 163, 175;
-            --card-bg: rgba(8, 8, 10, 0.75);
-        }
-        [data-theme="rich"] {
-            --bg-rgb: 26, 11, 46;
-            --accent-rgb: 212, 175, 55;
-            --tech-rgb: 255, 42, 109;
-            --text-rgb: 243, 232, 255;
-            --text-muted-rgb: 216, 180, 226;
-            --card-bg: rgba(26, 11, 46, 0.75);
-        }
-        [data-theme="sunny"] {
-            --bg-rgb: 224, 242, 254;
-            --accent-rgb: 245, 158, 11;
-            --tech-rgb: 2, 132, 199;
-            --text-rgb: 15, 23, 42;
-            --text-muted-rgb: 71, 85, 105;
-            --card-bg: rgba(255, 255, 255, 0.6);
-        }
-        body {
-            background-color: rgb(var(--bg-rgb));
-            color: rgb(var(--text-rgb));
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            transition: background-color 0.5s ease, color 0.5s ease;
-        }
-        .glass-panel {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(var(--accent-rgb), 0.3);
-        }
-        .gold-gradient {
-            background: linear-gradient(135deg, rgb(var(--accent-rgb)) 0%, #FFF8DC 50%, rgb(var(--accent-rgb)) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        :root {--bg-rgb: 2,2,3;--accent-rgb:229,183,105;--tech-rgb:0,240,255;--text-rgb:229,231,235;--text-muted-rgb:156,163,175;--card-bg:rgba(8,8,10,0.75);}
+        [data-theme="rich"] {--bg-rgb:26,11,46;--accent-rgb:212,175,55;--tech-rgb:255,42,109;--text-rgb:243,232,255;--text-muted-rgb:216,180,226;--card-bg:rgba(26,11,46,0.75);}
+        [data-theme="sunny"] {--bg-rgb:224,242,254;--accent-rgb:245,158,11;--tech-rgb:2,132,199;--text-rgb:15,23,42;--text-muted-rgb:71,85,105;--card-bg:rgba(255,255,255,0.6);}
+        body {background-color: rgb(var(--bg-rgb)); color: rgb(var(--text-rgb)); font-family: 'Plus Jakarta Sans', sans-serif;}
+        .glass-panel {background: var(--card-bg); backdrop-filter: blur(16px);}
+        .gold-gradient {background: linear-gradient(135deg, rgb(var(--accent-rgb)) 0%, #FFF8DC 50%, rgb(var(--accent-rgb)) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
         .tilt-wrapper { perspective: 1200px; }
-        .rgb-card {
-            position: relative;
-            background: rgb(var(--bg-rgb));
-            border-radius: 1.5rem;
-            overflow: hidden;
-            height: 100%;
-            min-height: 320px;
-        }
-        .rgb-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(rgb(var(--tech-rgb)), rgb(var(--accent-rgb)), #FF0055, #9D00FF, rgb(var(--tech-rgb)));
-            animation: rgbSpin 4s linear infinite;
-            opacity: 0.3;
-        }
-        .rgb-card:hover::before {
-            opacity: 1;
-        }
-        .rgb-content {
-            position: absolute;
-            inset: 2px;
-            background: var(--card-bg);
-            border-radius: calc(1.5rem - 2px);
-            z-index: 10;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            height: calc(100% - 4px);
-        }
-        @keyframes rgbSpin {
-            100% { transform: rotate(360deg); }
-        }
-        .btn-creepy {
-            position: relative;
-            overflow: hidden;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-creepy .eyes-wrapper {
-            position: absolute;
-            right: 1.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            gap: 4px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        .btn-creepy:hover .eyes-wrapper {
-            opacity: 1;
-        }
-        .btn-creepy:hover .btn-text-content {
-            transform: translateX(-15px);
-        }
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
+        .rgb-card {position: relative; background: rgb(var(--bg-rgb)); border-radius: 1.5rem; overflow: hidden; height: 100%; min-height: 320px;}
+        .rgb-card::before {content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(rgb(var(--tech-rgb)), rgb(var(--accent-rgb)), #FF0055, #9D00FF, rgb(var(--tech-rgb))); animation: rgbSpin 4s linear infinite; opacity: 0.3;}
+        .rgb-card:hover::before {opacity: 1;}
+        .rgb-content {position: absolute; inset: 2px; background: var(--card-bg); border-radius: calc(1.5rem - 2px); z-index: 10; padding: 1.5rem; display: flex; flex-direction: column; height: calc(100% - 4px);}
+        @keyframes rgbSpin {100% { transform: rotate(360deg); }}
+        .btn-creepy {position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center;}
+        .btn-creepy .eyes-wrapper {position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; opacity: 0; transition: opacity 0.3s ease; pointer-events: none;}
+        .btn-creepy:hover .eyes-wrapper {opacity: 1;}
+        .btn-creepy:hover .btn-text-content {transform: translateX(-15px);}
+        .line-clamp-2 {display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+        .line-clamp-3 {display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;}
     </style>
-    
-    <script>
-        function changeTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-    </script>
+    <script>function changeTheme(theme){document.documentElement.setAttribute('data-theme', theme);}</script>
 </head>
 <body>
-    <!-- Navigation (matches main site) -->
     <nav class="fixed w-full z-50 backdrop-blur-md border-b border-textmain/10 bg-obsidian/40">
         <div class="max-w-7xl mx-auto px-6 lg:px-12">
             <div class="flex justify-between items-center h-20">
-                <a href="https://siddhiai-welcome.vercel.app" class="flex items-center gap-3">
-                    <i data-lucide="cpu" class="text-accent w-6 h-6"></i>
-                    <span class="font-extrabold text-xl tracking-tighter">SIDDHI <span class="text-accent">AI</span></span>
-                </a>
-                
+                <a href="https://siddhiai-welcome.vercel.app" class="flex items-center gap-3"><i data-lucide="cpu" class="text-accent w-6 h-6"></i><span class="font-extrabold text-xl tracking-tighter">SIDDHI <span class="text-accent">AI</span></span></a>
                 <div class="hidden md:flex items-center space-x-6">
                     <a href="https://siddhiai-welcome.vercel.app/#benefits" class="text-[10px] uppercase tracking-[0.2em] font-bold text-textmuted hover:text-accent">Why Us</a>
                     <a href="https://siddhiai-welcome.vercel.app/#architectures" class="text-[10px] uppercase tracking-[0.2em] font-bold text-textmuted hover:text-accent">Services</a>
                     <a href="https://siddhiai-welcome.vercel.app/#global-reach" class="text-[10px] uppercase tracking-[0.2em] font-bold text-textmuted hover:text-accent">Global Reach</a>
                     <a href="/blog" class="text-[10px] uppercase tracking-[0.2em] font-bold text-accent">Blog</a>
-                    
                     <div class="flex items-center gap-2 ml-4 border-l border-textmuted/30 pl-6">
                         <button onclick="changeTheme('dark')" class="w-4 h-4 rounded-full bg-[#020203] border-2 border-gray-500"></button>
                         <button onclick="changeTheme('rich')" class="w-4 h-4 rounded-full bg-[#1a0b2e] border-2 border-[#d4af37]"></button>
                         <button onclick="changeTheme('sunny')" class="w-4 h-4 rounded-full bg-[#e0f2fe] border-2 border-[#f59e0b]"></button>
                     </div>
                 </div>
-                
                 <a href="https://siddhiai-welcome.vercel.app/#contact" class="hidden md:flex bg-accent text-obsidian px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] btn-creepy">
-                    <span class="btn-text-content">Start Project</span>
-                    <div class="eyes-wrapper">
-                        <div class="creepy-eye"><div class="creepy-pupil"></div></div>
-                        <div class="creepy-eye"><div class="creepy-pupil"></div></div>
-                    </div>
+                    <span class="btn-text-content">Start Project</span><div class="eyes-wrapper"><div class="creepy-eye"><div class="creepy-pupil"></div></div><div class="creepy-eye"><div class="creepy-pupil"></div></div></div>
                 </a>
             </div>
         </div>
     </nav>
-
     <main class="pt-32 pb-20">
         <div class="max-w-7xl mx-auto px-6">
-            <!-- Header -->
             <div class="text-center max-w-3xl mx-auto mb-16">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-accent/30 bg-accent/10 mb-6">
                     <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
@@ -183,8 +66,6 @@
                 <h1 class="font-serif text-5xl md:text-6xl text-textmain mb-4">Blog & <span class="gold-gradient italic">Insights</span></h1>
                 <p class="text-textmuted text-lg font-light">Expert articles on Python, AI, digital marketing, and web development – updated daily.</p>
             </div>
-            
-            <!-- Blog Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 
         <div class="tilt-wrapper h-full">
@@ -251,6 +132,26 @@
             <div class="rgb-card h-full">
                 <div class="rgb-content flex flex-col">
                     <div class="flex items-center gap-2 mb-3">
+                        <span class="text-[9px] font-bold text-accent uppercase tracking-widest">Global</span>
+                        <span class="text-[9px] text-textmuted">•</span>
+                        <span class="text-[9px] text-textmuted">March 12, 2026</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-textmain mb-3 line-clamp-2">The Ultimate Guide to Gwalior in India (2026)</h3>
+                    <p class="text-textmuted text-sm font-light mb-4 flex-1 line-clamp-3">Looking for expert Gwalior in India? SIDDHI AI provides top-rated gwalior solutions. Free consultation! ⭐⭐⭐⭐⭐</p>
+                    <a href="/blog/posts/2026-03-12-gwaliorindia.html" class="btn-creepy self-start mt-auto bg-transparent border border-accent text-accent px-6 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest hover:bg-accent hover:text-obsidian transition-all">
+                        <span class="btn-text-content">Read More</span>
+                        <div class="eyes-wrapper">
+                            <div class="creepy-eye"><div class="creepy-pupil"></div></div>
+                            <div class="creepy-eye"><div class="creepy-pupil"></div></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="tilt-wrapper h-full">
+            <div class="rgb-card h-full">
+                <div class="rgb-content flex flex-col">
+                    <div class="flex items-center gap-2 mb-3">
                         <span class="text-[9px] font-bold text-accent uppercase tracking-widest">Ireland</span>
                         <span class="text-[9px] text-textmuted">•</span>
                         <span class="text-[9px] text-textmuted">March 12, 2026</span>
@@ -270,21 +171,12 @@
             </div>
         </div>
     </main>
-
     <footer class="py-12 border-t border-textmain/10 bg-obsidian">
         <div class="max-w-7xl mx-auto px-6 text-center">
             <span class="font-extrabold text-2xl tracking-tighter text-textmain mb-6 block">SIDDHI <span class="text-accent">AI</span></span>
-            <div class="flex justify-center gap-6 mb-6">
-                <a href="https://github.com/CodeWander-666-github" class="text-textmuted hover:text-accent">
-                    <i data-lucide="github" class="w-5 h-5"></i>
-                </a>
-            </div>
             <p class="text-[9px] text-textmuted uppercase tracking-widest">&copy; 2017-2026 SIDDHI AI. All rights reserved.</p>
         </div>
     </footer>
-
-    <script>
-        lucide.createIcons();
-    </script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
