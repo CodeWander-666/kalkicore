@@ -383,7 +383,6 @@ def generate_blog_post(keyword: Dict, all_keywords: List[Dict]) -> str:
     template = read_index_template()
 
     # Replace the main content area with the article.
-    # We'll replace the entire <main> tag content with our article.
     main_pattern = r'<main[^>]*>.*?</main>'
     article_main = f"""
     <main class="pt-32 pb-20 interactive-ui max-w-4xl mx-auto px-6">
@@ -441,15 +440,16 @@ def update_blog_index() -> None:
             logger.error(f"Error reading {filepath}: {e}")
             continue
 
-    # Generate card HTML
+    # Generate card HTML safely
     cards_html = ""
     for p in posts:
-        # Build tags string safely
+        # Build tags string without using complex f‑string generators
         tag_spans = []
         for tag in p['tags']:
             tag_spans.append(f'<span class="text-[7px] bg-accent/10 text-accent px-2 py-0.5 rounded-full uppercase tracking-wider">#{tag}</span>')
         tags_html = ''.join(tag_spans)
 
+        # Build the card HTML
         card = f"""
         <div class="tilt-wrapper blog-card gsap-reveal">
             <div class="rgb-card">
