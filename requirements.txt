@@ -1,2 +1,2 @@
-zhipuai>=2.1.5
+zai-sdk>=0.2.2
 requests>=2.28.0
