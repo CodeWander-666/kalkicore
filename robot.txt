@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://siddhiai-welcome.vercel.app/sitemap.xml
