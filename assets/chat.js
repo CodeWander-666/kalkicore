@@ -1,14 +1,13 @@
 /* ==========================================================================
-   KalkiChat – Universal, hardware‑aware AI client
-   - Detects any GPU/CPU
-   - Loads ONLY the tiny Qwen2.5‑0.5B model
-   - Logs every step to console + UI
-   - Reads worker points from localStorage & displays pending mesh tasks
+   KalkiChat – Universal, production‑ready AI client
+   - Imports WebLLM correctly
+   - Safe GPU detection (handles missing requestAdapterInfo)
+   - Loads the tiny Qwen2.5‑0.5B model (<1 GB, works everywhere)
    ========================================================================== */
 
-const GITHUB_USER = "CodeWander-666";
-const GITHUB_REPO = "kalkicore";
-const TINY_MODEL  = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";   // < 1 GB, works on Intel UHD 620 & any WebGPU‑capable device
+import { CreateMLCEngine } from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/+esm";
+
+const TINY_MODEL = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
 
 /*************** DOM elements ***************/
 const elHardware   = document.getElementById("detected-hardware");
@@ -24,7 +23,7 @@ const logbox       = document.getElementById("logbox");
 let engine = null;
 let hwInfo = { name: "unknown", memoryMB: 0, tier: "unknown" };
 
-/*************** Logging (timestamps) ***************/
+/*************** Logging ***************/
 function log(msg, toConsole = true) {
   const time = new Date().toLocaleTimeString();
   const line = `[${time}] ${msg}`;
@@ -33,7 +32,7 @@ function log(msg, toConsole = true) {
   if (toConsole) console.log(line);
 }
 
-/*************** Points (from kalki-worker) ***************/
+/*************** Points (optional) ***************/
 function updatePointsUI() {
   const pts = parseInt(localStorage.getItem("kalki_points") || "0", 10);
   if (pts > 0) {
@@ -42,32 +41,12 @@ function updatePointsUI() {
   }
 }
 
-/*************** Worker mesh pending tasks ***************/
-async function checkPendingTasks() {
-  try {
-    const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/tasks.json`;
-    const resp = await fetch(url);
-    if (!resp.ok) return;
-    const tasks = await resp.json();
-    const pending = tasks.pending?.length || 0;
-    if (pending > 0) {
-      elWorkerMsg.style.display = "block";
-      elWorkerMsg.innerHTML = `🔧 The compute mesh needs your help: <strong>${pending}</strong> pending tasks. 
-        <a href="https://${GITHUB_USER}.github.io/kalki-worker/" target="_blank">Open Worker</a> to earn points.`;
-    } else {
-      elWorkerMsg.style.display = "none";
-    }
-  } catch (e) {
-    // ignore errors; this is non‑critical
-  }
-}
-
-/*************** Hardware detection ***************/
+/*************** Hardware detection (safe) ***************/
 async function detectHardware() {
   log("🔍 Starting hardware detection…");
   if (!navigator.gpu) {
-    log("⚠️ WebGPU NOT supported by this browser.");
-    elHardware.textContent = "WebGPU unavailable – please use Chrome/Edge on a device with a GPU.";
+    log("⚠️ WebGPU NOT supported.");
+    elHardware.textContent = "WebGPU unavailable – please use Chrome/Edge.";
     hwInfo.tier = "cpu";
     return hwInfo;
   }
@@ -76,25 +55,39 @@ async function detectHardware() {
     const adapter = await navigator.gpu.requestAdapter();
     if (!adapter) {
       log("⚠️ No GPU adapter found.");
-      elHardware.textContent = "No GPU adapter – AI will not run.";
+      elHardware.textContent = "No GPU adapter – AI cannot run.";
       hwInfo.tier = "cpu";
       return hwInfo;
     }
 
-    const info = await adapter.requestAdapterInfo();
-    hwInfo.name = info.description || "unknown GPU";
-    hwInfo.architecture = info.architecture || "";
-    log(`   ✅ Adapter: ${hwInfo.name}`);
+    // Try to get adapter info (may fail on older browsers)
+    let adapterInfo = {};
+    try {
+      // Chrome 113+ has requestAdapterInfo()
+      if (typeof adapter.requestAdapterInfo === "function") {
+        adapterInfo = await adapter.requestAdapterInfo();
+        hwInfo.name = adapterInfo.description || "WebGPU Adapter";
+        hwInfo.architecture = adapterInfo.architecture || "";
+      } else {
+        // Fallback – just use generic name
+        hwInfo.name = "WebGPU Adapter";
+      }
+    } catch (infoErr) {
+      log("   ⚠️ Could not fetch adapter info: " + infoErr.message);
+      hwInfo.name = "WebGPU Adapter";
+    }
 
-    // Estimate memory from description string
-    const memMatch = hwInfo.name.match(/(\d+)\s*(GB|MB)/i);
+    log(`   ✅ Adapter found: ${hwInfo.name}`);
+
+    // Estimate memory (crude, but safe)
+    const memMatch = (hwInfo.name || "").match(/(\d+)\s*(GB|MB)/i);
     if (memMatch) {
       let mem = parseInt(memMatch[1], 10);
       if (memMatch[2].toUpperCase() === "GB") mem *= 1024;
       hwInfo.memoryMB = mem;
     }
 
-    // Get more precise limits
+    // Try to get device limits for more accurate memory
     try {
       const device = await adapter.requestDevice();
       const limits = device.limits;
@@ -104,8 +97,8 @@ async function detectHardware() {
         hwInfo.memoryMB = Math.max(hwInfo.memoryMB || 0, bufMB);
       }
       device.destroy();
-    } catch (e) {
-      log("   Could not probe device limits: " + e.message);
+    } catch (devErr) {
+      log("   ❌ Could not probe device limits: " + devErr.message);
     }
 
     hwInfo.tier = hwInfo.memoryMB >= 4000 ? "high" : hwInfo.memoryMB >= 2000 ? "medium" : "low";
@@ -119,7 +112,7 @@ async function detectHardware() {
   return hwInfo;
 }
 
-/*************** Model loading ***************/
+/*************** Model loading (only tiny) ***************/
 async function loadTinyModel() {
   elModelStatus.textContent = "Loading tiny model (Qwen2.5‑0.5B)…";
   log("📦 Loading model: " + TINY_MODEL);
@@ -131,7 +124,7 @@ async function loadTinyModel() {
       initProgressCallback: (p) => {
         const pct = Math.round(p.progress * 100);
         elModelStatus.textContent = `Loading model… ${pct}%`;
-        log(`   Progress: ${pct}%`, false);   // no console spam
+        log(`   Progress: ${pct}%`, false);
       }
     });
     elModelStatus.textContent = `✅ Ready – Qwen2.5‑0.5B`;
@@ -141,11 +134,11 @@ async function loadTinyModel() {
     localStorage.setItem("kalki_last_model", TINY_MODEL);
   } catch (err) {
     log("❌ Model load failed: " + err.message);
-    elModelStatus.textContent = "❌ Model load failed – see log. Try a different browser or device.";
+    elModelStatus.textContent = "❌ Model load failed – try a different browser or device.";
   }
 }
 
-/*************** Chat logic ***************/
+/*************** Chat logic (unchanged) ***************/
 function appendMessage(role, text) {
   const div = document.createElement("div");
   div.className = `msg ${role}`;
@@ -188,18 +181,11 @@ async function init() {
   log("🟢 KalkiChat started");
 
   await detectHardware();
-
-  // Always load the tiny model (even on CPU, it will fail gracefully)
   await loadTinyModel();
 
-  // Worker integration
   updatePointsUI();
-  checkPendingTasks();
-  // Refresh points & pending every 30 seconds
-  setInterval(() => {
-    updatePointsUI();
-    checkPendingTasks();
-  }, 30000);
+  // Optional: fetch pending tasks from kalkicore (if you have cross‑repo access)
+  setInterval(updatePointsUI, 30000);
 
   log("🟢 Initialization complete.");
 }
