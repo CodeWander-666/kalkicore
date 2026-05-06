@@ -2,7 +2,7 @@
  * Kalki Worker – Performs a small WebGPU compute task and reports via
  * GitHub issues. Points are tracked in the repo’s tasks.json.
  */
-const OWNER = "YOUR_GITHUB_USERNAME";    // <-- CHANGE ME
+const OWNER = "CodeWander-666";    // <-- CHANGE ME
 const REPO = "kalkicore";                 // <-- CHANGE ME if needed
 
 let workerActive = false;
