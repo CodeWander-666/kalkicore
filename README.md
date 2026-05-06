@@ -1,23 +1,21 @@
-# ⚡ Kalki Core – Free, Browser‑Native AI Platform
+# ⚡ KalkiCore – Universal, Tiny‑Model AI Chat
 
-This single repository contains the entire Kalki platform:
-- **Chat UI** (index.html) – Unlimited AI tokens via WebLLM.
-- **Worker UI** (worker.html) – Earn points by sharing idle GPU.
-- **Orchestrator** (GitHub Actions) – Distributes tasks, verifies work, and manages points.
+A completely free, browser‑native AI chat that works on **any** WebGPU‑capable device, including Intel UHD Graphics 620 and integrated GPUs.  
+It uses the **tiny Qwen2.5‑0.5B** model (<1 GB) to guarantee broad compatibility and instant loading.
 
-**Zero cost, zero servers, zero credit card.** Runs entirely on GitHub Pages and GitHub Actions.
+**No server, no API keys, unlimited tokens.**
 
-## Quick Start
-1. Fork/clone this repo.
-2. In repo settings → **Pages**, set source to `main` branch and folder `/ (root)`.
-3. Enable **GitHub Issues** (Settings → General → Issues).
-4. Update `OWNER` and `REPO` in `assets/worker.js` (line 4 & 5) to match your GitHub username and repo name.
-5. Push to GitHub. The site will be live at `https://<your-username>.github.io/kalkicore/`.
+## Features
+- 🔍 Dynamic hardware detection – shows your GPU and estimated memory
+- 📋 Full logging in the UI and JavaScript console
+- 🔗 Live integration with the Kalki Worker mesh (points, pending tasks)
+- ⚡ One‑click deploy via GitHub Pages
 
-## Configuration
-- The orchestrator runs every 5 minutes automatically (`.github/workflows/orchestrator.yml`).
-- Edit `tasks.json` to add or remove pending compute tasks.
-- Model is loaded from MLC’s CDN; no model files need to be stored here.
+## Setup
+1. Fork / clone this repository.
+2. Enable GitHub Pages in Settings → Pages (source: `main` branch, `/` root).
+3. (Optional) Set up a GitHub personal access token with `public_repo` scope as a repository secret named `GITHUB_TOKEN` to enable the orchestrator.
+4. Visit `https://<your-username>.github.io/kalkicore/` and start chatting!
 
-## License
-AGPL-3.0
+## Why only one tiny model?
+We prioritise universal access over raw power. The Qwen2.5‑0.5B model runs on almost any device with WebGPU, and we intend to support model‑of‑choice via the worker mesh in future releases.

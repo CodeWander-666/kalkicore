@@ -1,7 +1,7 @@
 {
   "pending": [
-    { "id": "demo-1", "type": "webgpu-compute", "reward": 10 },
-    { "id": "demo-2", "type": "webgpu-compute", "reward": 10 }
+    { "id": "tiny-task-1", "type": "webgpu-compute", "reward": 5, "model": "Qwen2.5-0.5B" },
+    { "id": "tiny-task-2", "type": "webgpu-compute", "reward": 5, "model": "Qwen2.5-0.5B" }
   ],
   "completed": [],
   "points": {}

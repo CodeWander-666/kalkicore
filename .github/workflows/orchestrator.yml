@@ -1,9 +1,8 @@
 name: Kalki Orchestrator
 on:
   schedule:
-    - cron: '*/5 * * * *'   # every 5 minutes
+    - cron: '*/5 * * * *'
   workflow_dispatch:
-
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
@@ -12,15 +11,9 @@ jobs:
       issues: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Run orchestrator script
-        run: |
-          python3 process.py
-
-      - name: Commit and push updated state
-        run: |
-          git config user.name "kalki-bot"
-          git config user.email "bot@kalki.dev"
-          git add tasks.json
-          git diff --staged --quiet || git commit -m "Orchestrator update"
-          git push
+      - name: Run orchestrator
+        run: python3 process.py
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Orchestrator update'
+          file_pattern: 'tasks.json'
