@@ -3,26 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Kalki Intelligence – Unlimited AI with node-powered reasoning">
-  <title>⚡ Kalki Intelligence</title>
+  <title>⚡ Kalki Intelligence – Multi-Node AI Mesh</title>
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="css/style.css">
+  <style>
+    :root {
+      --primary: #2563eb; --success: #059669; --danger: #b91c1c;
+      --bg: #f8fafc; --card: #fff; --text: #1e293b; --dark: #1e293b;
+      --thinking-bg: #fef3c7; --thinking-border: #fcd34d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    nav { display: flex; align-items: center; justify-content: space-between; background: var(--dark); color: white; padding: 0.8em 1.5em; position: sticky; top: 0; z-index: 10; }
+    #logo { font-weight: 700; font-size: 1.2em; }
+    .nav-btn { background: transparent; color: white; border: 1px solid transparent; padding: 0.5em 1em; border-radius: 8px; cursor: pointer; font-size: 0.95em; margin-left: 0.5em; }
+    .nav-btn.active { background: var(--primary); border-color: var(--primary); }
+    #points-badge { background: var(--success); padding: 0.3em 1em; border-radius: 20px; font-weight: 600; }
+    .view { display: none; max-width: 900px; margin: 1.5em auto; padding: 0 1em; }
+    .view.active { display: block; }
+    #hardware-bar { font-size: 0.85em; color: #64748b; margin-bottom: 0.5em; }
+    #thinking-panel { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 10px; padding: 0.8em; margin-bottom: 0.8em; display: none; }
+    #thinking-nodes { display: flex; flex-wrap: wrap; gap: 0.5em; }
+    .think-node { background: #fde68a; padding: 0.3em 0.8em; border-radius: 15px; font-size: 0.8em; animation: pulse 1.2s infinite; }
+    .think-node .device { font-weight: 700; }
+    .think-node .reasoning { font-style: italic; color: #92400e; margin-left: 0.5em; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    #chatbox { background: var(--card); border-radius: 12px; padding: 1em; height: 450px; overflow-y: auto; margin-bottom: 0.8em; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    .msg { margin-bottom: 0.8em; }
+    .msg.user { color: var(--primary); }
+    .msg.bot { color: var(--success); }
+    .msg.thinking { color: #92400e; font-style: italic; font-size: 0.85em; background: #fef9c3; padding: 0.5em; border-radius: 8px; }
+    #input-area { display: flex; gap: 0.5em; }
+    #input-area input { flex: 1; padding: 0.7em; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 1em; }
+    #input-area button { padding: 0.7em 1.2em; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
+    #send-btn { background: var(--primary); color: white; }
+    #send-btn:disabled, #input-area input:disabled { opacity: 0.5; cursor: not-allowed; }
+    #clear-btn { background: #e2e8f0; }
+    #status-line { font-size: 0.85em; color: #64748b; margin-top: 0.3em; }
+    .card { background: var(--card); border-radius: 12px; padding: 1.5em; margin-bottom: 1em; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    .card h2 { margin-bottom: 0.8em; }
+    .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em; font-size: 0.9em; }
+    .points-large { font-size: 2.8em; font-weight: 700; color: var(--primary); margin-bottom: 0.3em; }
+    .btn-primary { background: var(--success); color: white; padding: 0.7em 1.5em; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1em; }
+    .btn-danger { background: var(--danger); color: white; padding: 0.7em 1.5em; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1em; }
+    .btn-danger:disabled, .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .log-box { background: var(--dark); color: #e2e8f0; padding: 1em; border-radius: 10px; font-family: monospace; font-size: 0.8em; max-height: 300px; overflow-y: auto; white-space: pre-wrap; }
+    .badge { padding: 0.2em 0.7em; border-radius: 12px; font-size: 0.85em; }
+    .badge.idle { background: #e2e8f0; color: #475569; }
+    .badge.active { background: #dcfce7; color: var(--success); }
+    .chart-container { width: 100%; height: 200px; margin: 1em 0; }
+    @media (max-width: 600px) { .specs-grid { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-  <!‑‑ Navigation bar ‑‑>
   <nav id="topbar">
     <span id="logo">⚡ Kalki</span>
     <div id="nav-buttons">
       <button id="btn-chat" class="nav-btn active">💬 Chat</button>
-      <button id="btn-node" class="nav-btn">🖥️ Become a Node</button>
+      <button id="btn-node" class="nav-btn">🖥️ Node Dashboard</button>
     </div>
     <div id="points-badge">🪙 <span id="pts-val">0</span> pts</div>
   </nav>
 
-  <!‑‑ CHAT VIEW ‑‑>
+  <!-- CHAT VIEW -->
   <main id="view-chat" class="view active">
     <div id="hardware-bar">🖥️ <span id="hw-info">Detecting hardware…</span></div>
-    <div id="thinking-bar" style="display:none;">
+    <div id="thinking-panel">
+      <strong>🧠 Parallel Thinking:</strong>
       <div id="thinking-nodes"></div>
     </div>
     <div id="chatbox"></div>
@@ -34,7 +80,7 @@
     <div id="status-line">Loading model…</div>
   </main>
 
-  <!‑‑ NODE DASHBOARD VIEW ‑‑>
+  <!-- NODE DASHBOARD VIEW -->
   <main id="view-node" class="view">
     <div class="card">
       <h2>🖥️ Your Node</h2>
@@ -42,7 +88,7 @@
         <div><strong>Device:</strong> <span id="spec-device">—</span></div>
         <div><strong>CPU Cores:</strong> <span id="spec-cpu">—</span></div>
         <div><strong>GPU:</strong> <span id="spec-gpu">—</span></div>
-        <div><strong>Memory:</strong> <span id="spec-ram">—</span></div>
+        <div><strong>Memory:</strong> <span id="spec-ram">—</span> GB</div>
         <div><strong>Tier:</strong> <span id="spec-tier">—</span></div>
       </div>
     </div>
@@ -51,12 +97,18 @@
       <div class="points-large" id="node-points">0</div>
       <div class="specs-grid">
         <div><strong>Total Earned:</strong> <span id="spec-earned">0</span></div>
-        <div><strong>Tokens Used:</strong> <span id="spec-tokens">0</span></div>
-        <div><strong>Tokens Served:</strong> <span id="spec-served">0</span></div>
+        <div><strong>Tokens Used (You):</strong> <span id="spec-tokens-used">0</span></div>
+        <div><strong>Tokens Served (You):</strong> <span id="spec-tokens-served">0</span></div>
+        <div><strong>Active Nodes:</strong> <span id="spec-active-nodes">0</span></div>
         <div><strong>Status:</strong> <span id="spec-status" class="badge idle">IDLE</span></div>
       </div>
       <button id="btn-start-node" class="btn-primary">▶ Start Sharing GPU</button>
       <button id="btn-stop-node" class="btn-danger" disabled>⏹ Stop</button>
+    </div>
+    <div class="card">
+      <h2>📊 Mesh Analytics</h2>
+      <div class="chart-container"><canvas id="chart-tokens"></canvas></div>
+      <div class="chart-container"><canvas id="chart-nodes"></canvas></div>
     </div>
     <div class="card">
       <h2>📋 Activity Log</h2>
@@ -64,8 +116,8 @@
     </div>
   </main>
 
-  <!‑‑ Scripts ‑‑>
   <script src="https://cdn.jsdelivr.net/npm/dexie@4/dist/dexie.min.js"></script>
-  <script type="module" src="js/kalki.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script type="module" src="js/kalki-v3.js"></script>
 </body>
 </html>
