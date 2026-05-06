@@ -1,21 +1,21 @@
-# ⚡ KalkiCore – Universal, Tiny‑Model AI Chat
+# ⚡ KalkiCore – Production AI Mesh
 
-A completely free, browser‑native AI chat that works on **any** WebGPU‑capable device, including Intel UHD Graphics 620 and integrated GPUs.  
-It uses the **tiny Qwen2.5‑0.5B** model (<1 GB) to guarantee broad compatibility and instant loading.
-
-**No server, no API keys, unlimited tokens.**
+The user-facing gateway to the Kalki Intelligence network.
 
 ## Features
-- 🔍 Dynamic hardware detection – shows your GPU and estimated memory
-- 📋 Full logging in the UI and JavaScript console
-- 🔗 Live integration with the Kalki Worker mesh (points, pending tasks)
-- ⚡ One‑click deploy via GitHub Pages
+- **Unlimited AI Chat** – Qwen2.5‑0.5B runs fully in your browser via WebGPU
+- **Persistent Memory** – All conversations saved in IndexedDB (via Dexie.js), survive restarts
+- **Multi‑Node Thinking** – See real‑time reasoning from each connected device
+- **Node Dashboard** – Become a node, share GPU, earn points, track usage in real time
+- **PWA Support** – Install on any device, works offline
 
-## Setup
-1. Fork / clone this repository.
-2. Enable GitHub Pages in Settings → Pages (source: `main` branch, `/` root).
-3. (Optional) Set up a GitHub personal access token with `public_repo` scope as a repository secret named `GITHUB_TOKEN` to enable the orchestrator.
-4. Visit `https://<your-username>.github.io/kalkicore/` and start chatting!
+## Tech Stack
+- WebLLM (browser‑native LLM inference)
+- Dexie.js (IndexedDB wrapper for persistent storage)
+- WebGPU / WebAssembly
+- GitHub Pages (static hosting + SPA routing)
 
-## Why only one tiny model?
-We prioritise universal access over raw power. The Qwen2.5‑0.5B model runs on almost any device with WebGPU, and we intend to support model‑of‑choice via the worker mesh in future releases.
+## Quick Start
+1. Enable GitHub Pages on this repo (main branch, root).
+2. Visit `https://<user>.github.io/kalkicore/`
+3. Chat instantly. Click "Become a Node" to earn points.
