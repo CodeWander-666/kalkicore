@@ -1,0 +1,8 @@
+{
+  "pending": [
+    { "id": "demo-1", "type": "webgpu-compute", "reward": 10 },
+    { "id": "demo-2", "type": "webgpu-compute", "reward": 10 }
+  ],
+  "completed": [],
+  "points": {}
+}
