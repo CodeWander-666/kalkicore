@@ -1,9 +1,0 @@
-{
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "destination": "https://kalkicore.vercel.app",
-      "permanent": true
-    }
-  ]
-}
