@@ -1,32 +1,3 @@
-cat > fix_seo_duplicates.sh << 'EOF'
-#!/bin/bash
-set -euo pipefail
-
-echo "🔧 Fixing duplicate imports in layout.tsx..."
-
-# Backup layout.tsx
-cp app/layout.tsx app/layout.tsx.backup
-
-# Remove all duplicate StructuredData imports and keep only one
-sed -i '/import StructuredData/d' app/layout.tsx
-
-# Add a single import at the top with other imports
-sed -i '1iimport StructuredData from "@/components/StructuredData";' app/layout.tsx
-
-# Remove any duplicate StructuredData component usage inside body
-# Ensure only one <StructuredData /> exists before closing </body>
-# First, remove all existing StructuredData tags
-sed -i '/<StructuredData/d' app/layout.tsx
-
-# Then add it just before </body>
-sed -i '/<\/body>/i\  <StructuredData />' app/layout.tsx
-
-echo "✅ Fixed layout.tsx imports and component placement."
-
-# Verify the structured data component exists
-if [ ! -f "components/StructuredData.tsx" ]; then
-    echo "Creating missing StructuredData component..."
-    cat > components/StructuredData.tsx << 'STRUCT'
 'use client';
 import { useEffect } from 'react';
 
@@ -74,18 +45,3 @@ export default function StructuredData() {
 
   return null;
 }
-STRUCT
-    echo "✅ StructuredData component created."
-fi
-
-echo "🧹 Cleaning build cache..."
-rm -rf .next
-
-echo "🔨 Rebuilding project..."
-npm run build
-
-echo "✅ Build successful! Ready for deployment."
-EOF
-
-chmod +x fix_seo_duplicates.sh
-./fix_seo_duplicates.sh

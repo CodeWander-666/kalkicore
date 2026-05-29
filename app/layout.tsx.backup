@@ -1,8 +1,12 @@
 import './globals.css';
 import { Header } from '@/components/Header';
+import StructuredData from '@/components/StructuredData';
 import { Footer } from '@/components/Footer';
+import StructuredData from '@/components/StructuredData';
 import { KIProvider } from '@/context/KIContext';
+import StructuredData from '@/components/StructuredData';
 import { Metadata } from 'next';
+import StructuredData from '@/components/StructuredData';
 
 export const metadata: Metadata = {
   title: 'Kalki Technologies | Private AI · Digital Marketing · Cloud',
@@ -31,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="relative z-10">{children}</main>
           <Footer />
         </KIProvider>
+  <StructuredData />
       </body>
     </html>
   );
