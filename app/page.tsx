@@ -1,44 +1,71 @@
 'use client';
 import { ScrollReveal } from '../components/ScrollReveal';
-import { ServiceCard } from '../components/ServiceCard';
-import { TestimonialMarquee } from '../components/TestimonialMarquee';
 import { NodeTracker } from '../components/NodeTracker';
-import { WebLLMChat } from '../components/WebLLMChat';
-import { ThinkingVisualizer } from '../components/ThinkingVisualizer';
 import { GradientBackground } from '../components/GradientBackground';
 import Link from 'next/link';
+
+// Simple SVG icons (no emojis)
+const IconSpark = () => (
+  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+  </svg>
+);
+
+const IconCloud = () => (
+  <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+  </svg>
+);
+
+const IconUsers = () => (
+  <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+);
+
+const IconChat = () => (
+  <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+  </svg>
+);
+
+const IconBriefcase = () => (
+  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  </svg>
+);
 
 export default function Home() {
   return (
     <>
       <GradientBackground />
       <div className="relative z-10 pt-20">
-        {/* Hero */}
+        {/* Hero Section */}
         <ScrollReveal>
           <section className="min-h-[90vh] flex items-center justify-center text-center px-6">
             <div>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gold-400/30 bg-gold-400/5 text-gold-400 text-sm tracking-wider mb-6">
-                ✦ KALKI INTELLIGENCY ✦
+                KALKI TECHNOLOGIES
               </div>
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold tracking-tight">
-                Your AI.<br />
+                Private AI.<br />
                 <span className="text-gold-400">Your Browser.</span>
               </h1>
               <p className="text-xl text-gray-300 mt-8 max-w-2xl mx-auto leading-relaxed">
-                <strong>Kalki Intelligency (KI)</strong> is the first open‑source intelligence engine that runs <strong>entirely inside your browser</strong> – no data centre, no leaks, total privacy.
+                Open‑source intelligence engine that runs entirely inside your browser – no data centre, total privacy.
               </p>
               <div className="flex flex-col sm:flex-row gap-5 justify-center mt-12">
                 <Link
-                  href="/chat"
-                  className="px-10 py-4 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition"
+                  href="/ki-bot"
+                  className="px-10 py-4 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition inline-flex items-center gap-2"
                 >
-                  ✨ Talk to KI now
+                  <IconSpark /> Try KI Bot
                 </Link>
                 <Link
                   href="/ki-cloud"
-                  className="px-10 py-4 rounded-full border border-white/20 text-white hover:border-gold-400 hover:text-gold-400 transition"
+                  className="px-10 py-4 rounded-full border border-white/20 text-white hover:border-gold-400 hover:text-gold-400 transition inline-flex items-center gap-2"
                 >
-                  Explore KI Cloud
+                  <IconCloud /> Explore KI Cloud
                 </Link>
               </div>
               <div className="mt-16 flex justify-center">
@@ -48,107 +75,167 @@ export default function Home() {
           </section>
         </ScrollReveal>
 
-        {/* Thinking Pool Section */}
+        {/* KI Cloud Section */}
         <ScrollReveal>
-          <div className="glass-card p-8 rounded-3xl max-w-4xl mx-auto my-12">
-            <h3 className="text-2xl font-serif text-center mb-4">
-              Distributed <span className="text-cyan-400">Thinking Pool</span>
-            </h3>
-            <div className="h-32 flex items-center justify-center">
-              <ThinkingVisualizer />
-            </div>
-            <p className="text-center text-gray-400 text-sm mt-4">
-              Every new node joins a quantum‑inspired parallel network – more users mean faster thinking for everyone.
-            </p>
-          </div>
-        </ScrollReveal>
-
-        {/* KI Explanation */}
-        <ScrollReveal>
-          <section className="py-24 max-w-6xl mx-auto px-6 text-center">
-            <h2 className="text-4xl md:text-5xl font-serif mb-6">
-              What makes <span className="text-cyan-400">KI</span> different?
-            </h2>
-            <div className="grid md:grid-cols-3 gap-8 mt-12">
-              <div className="glass-card p-8 rounded-2xl">
-                <div className="text-5xl mb-4">🔒</div>
-                <h3 className="text-2xl font-semibold mb-2">Zero data centre</h3>
-                <p className="text-gray-400">Your conversations never leave your device. No servers, no logs, no tracking.</p>
+          <section className="py-24 bg-black/30">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-400/30 bg-cyan-400/5 text-cyan-400 text-xs tracking-wider mb-4">
+                  <IconCloud /> KI Cloud
+                </div>
+                <h2 className="text-4xl md:text-5xl font-serif">Distributed Intelligence Network</h2>
+                <p className="text-gray-400 max-w-2xl mx-auto mt-4">
+                  Every user becomes a node. The network gets smarter with each new participant – zero central servers.
+                </p>
               </div>
-              <div className="glass-card p-8 rounded-2xl">
-                <div className="text-5xl mb-4">📦</div>
-                <h3 className="text-2xl font-semibold mb-2">Tiny but powerful</h3>
-                <p className="text-gray-400">Uses a super‑small language model (135M params) that runs on any modern laptop or phone.</p>
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="glass-card p-6 rounded-2xl text-center">
+                  <IconCloud />
+                  <h3 className="text-xl font-semibold mt-3 mb-2">Community Chat</h3>
+                  <p className="text-gray-400 text-sm">Reddit‑style discussions, real‑time, open source.</p>
+                </div>
+                <div className="glass-card p-6 rounded-2xl text-center">
+                  <IconSpark />
+                  <h3 className="text-xl font-semibold mt-3 mb-2">KI Marketplace</h3>
+                  <p className="text-gray-400 text-sm">Developers upload services, businesses discover AI tools.</p>
+                </div>
+                <div className="glass-card p-6 rounded-2xl text-center">
+                  <IconUsers />
+                  <h3 className="text-xl font-semibold mt-3 mb-2">Social Feed</h3>
+                  <p className="text-gray-400 text-sm">Image sharing, upvotes, community‑driven content.</p>
+                </div>
               </div>
-              <div className="glass-card p-8 rounded-2xl">
-                <div className="text-5xl mb-4">🌐</div>
-                <h3 className="text-2xl font-semibold mb-2">Permanent node</h3>
-                <p className="text-gray-400">Our network includes an always‑active node – free, open‑source, and unlimited.</p>
+              <div className="text-center mt-12">
+                <Link href="/ki-cloud" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-600 text-white hover:scale-105 transition">
+                  Join KI Cloud →
+                </Link>
               </div>
             </div>
           </section>
         </ScrollReveal>
 
-        {/* Six Service Cards – each linking to dedicated sub‑page */}
+        {/* KI Bot Section (Chatbot) */}
         <ScrollReveal>
-          <section className="py-28">
+          <section className="py-24">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-pink-400/30 bg-pink-400/5 text-pink-400 text-xs tracking-wider mb-4">
+                  <IconChat /> KI Bot
+                </div>
+                <h2 className="text-4xl md:text-5xl font-serif">Your Private AI Assistant</h2>
+                <p className="text-gray-400 max-w-2xl mx-auto mt-4">
+                  DeepSeek‑style chat that runs locally – no data leaves your device. Ask anything about marketing, development, or AI.
+                </p>
+              </div>
+              <div className="glass-card rounded-3xl p-1 max-w-4xl mx-auto">
+                <div className="bg-black/40 rounded-2xl p-1 text-center text-gray-400 text-sm py-8">
+                  <video className="w-full rounded-xl" autoPlay loop muted playsInline poster="/videos/ai-seo.jpg">
+                    <source src="/videos/ai-seo.webm" type="video/webm" />
+                  </video>
+                </div>
+              </div>
+              <div className="text-center mt-8">
+                <Link href="/ki-bot" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition">
+                  <IconChat /> Start Chatting with KI
+                </Link>
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* KI Community Section */}
+        <ScrollReveal>
+          <section className="py-24 bg-black/30">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-400/30 bg-purple-400/5 text-purple-400 text-xs tracking-wider mb-4">
+                  <IconUsers /> KI Community
+                </div>
+                <h2 className="text-4xl md:text-5xl font-serif">Built by Developers, for Everyone</h2>
+                <p className="text-gray-400 max-w-2xl mx-auto mt-4">
+                  Join the open‑source movement. Share your bots, upvote content, and help shape the future of private AI.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+                <div className="glass-card p-6 rounded-2xl flex items-start gap-4">
+                  <IconUsers />
+                  <div>
+                    <h3 className="text-lg font-semibold">Discuss & Learn</h3>
+                    <p className="text-gray-400 text-sm">Ask questions, share projects, get help from the community.</p>
+                  </div>
+                </div>
+                <div className="glass-card p-6 rounded-2xl flex items-start gap-4">
+                  <IconSpark />
+                  <div>
+                    <h3 className="text-lg font-semibold">Upload Your Bots</h3>
+                    <p className="text-gray-400 text-sm">Submit AI agents to the marketplace and earn revenue.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center mt-12">
+                <Link href="/ki-cloud?tab=community" className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 text-white hover:border-gold-400 transition">
+                  Join Community →
+                </Link>
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* Services Grid (with video placeholders) */}
+        <ScrollReveal>
+          <section className="py-24">
             <div className="max-w-7xl mx-auto px-6">
-              <h2 className="text-4xl md:text-5xl font-serif text-center">
-                AI‑Powered <span className="text-gold-400">Services</span>
-              </h2>
-              <p className="text-center text-gray-400 mt-4 mb-16">Tailored for every stage of your journey</p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <ServiceCard
-                  title="AI‑Driven SEO"
-                  description="Programmatic SEO, on‑page & off‑page optimisation, local dominance."
-                  href="/services/seo"
-                  icon="📈"
-                  gradient="from-cyan-500 to-blue-600"
-                />
-                <ServiceCard
-                  title="Social Media Automation"
-                  description="Facebook + Instagram – guaranteed 2 viral posts/month + free blue tick verification."
-                  href="/services/social-media"
-                  icon="📱"
-                  gradient="from-pink-500 to-purple-600"
-                />
-                <ServiceCard
-                  title="Google Business Profile SEO"
-                  description="Rank #1 on Google Maps and local pack – complete GMB optimisation."
-                  href="/services/gmb-seo"
-                  icon="📍"
-                  gradient="from-green-500 to-teal-600"
-                />
-                <ServiceCard
-                  title="LinkedIn Optimisation"
-                  description="Personal branding, lead generation, and free LinkedIn Premium included."
-                  href="/services/linkedin"
-                  icon="🔗"
-                  gradient="from-blue-500 to-cyan-600"
-                />
-                <ServiceCard
-                  title="Website Development"
-                  description="Static (₹7,999) or Dynamic Next.js (₹12,999) – ultra‑fast, secure, SEO‑ready."
-                  href="/services/web-development"
-                  icon="💻"
-                  gradient="from-orange-500 to-red-600"
-                />
-                <ServiceCard
-                  title="AI Automation Suite"
-                  description="WhatsApp bots, booking dashboards, AI sales agents – guaranteed ROI."
-                  href="/services/ai-automation"
-                  icon="⚙️"
-                  gradient="from-indigo-500 to-purple-600"
-                />
+              <div className="text-center mb-12">
+                <h2 className="text-4xl md:text-5xl font-serif">Full‑Suite Services</h2>
+                <p className="text-gray-400 mt-2">AI‑powered digital marketing, development, and automation</p>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  { title: "AI‑Driven SEO", href: "/services/seo", video: "ai-seo", desc: "Programmatic SEO, 50+ keywords, monthly reports" },
+                  { title: "Social Media Automation", href: "/services/social-media", video: "social-media-automation", desc: "2 viral posts/month + free blue tick" },
+                  { title: "GMB SEO", href: "/services/gmb-seo", video: "gmb-seo", desc: "Google Maps #1 ranking, review management" },
+                  { title: "LinkedIn Optimisation", href: "/services/linkedin", video: "linkedin-growth", desc: "Free Premium, lead gen automation" },
+                  { title: "Web Development", href: "/services/web-development", video: "web-development", desc: "Static ₹7,999 / Dynamic ₹12,999" },
+                  { title: "AI Automation Suite", href: "/services/ai-automation", video: "ai-automation", desc: "WhatsApp bots, CRM, AI calling" },
+                ].map((service) => (
+                  <Link key={service.title} href={service.href} className="glass-card rounded-2xl overflow-hidden hover:scale-105 transition">
+                    <div className="aspect-video bg-black/40">
+                      <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                        <source src={`/videos/${service.video}.webm`} type="video/webm" />
+                      </video>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-xl font-semibold">{service.title}</h3>
+                      <p className="text-gray-400 text-sm mt-1">{service.desc}</p>
+                      <div className="mt-3 text-gold-400 text-sm inline-flex items-center gap-1">Discover →</div>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </div>
           </section>
         </ScrollReveal>
 
-        {/* Testimonials */}
+        {/* Hiring Section */}
         <ScrollReveal>
-          <section className="py-16">
-            <TestimonialMarquee />
+          <section className="py-24 bg-black/30">
+            <div className="max-w-6xl mx-auto px-6 text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold-400/30 bg-gold-400/5 text-gold-400 text-xs tracking-wider mb-4">
+                <IconBriefcase /> Join the Team
+              </div>
+              <h2 className="text-4xl md:text-5xl font-serif">Work with KI</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto mt-4">
+                Remote, flexible, futuristic – become part of the open‑source intelligence network.
+              </p>
+              <div className="flex flex-wrap gap-4 justify-center mt-8">
+                <Link href="/hiring" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition">
+                  <IconBriefcase /> View Openings
+                </Link>
+                <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-white/20 text-white hover:border-gold-400 transition">
+                  <IconSpark /> Send Open Application
+                </Link>
+              </div>
+            </div>
           </section>
         </ScrollReveal>
 
@@ -157,16 +244,14 @@ export default function Home() {
           <section className="py-32 text-center">
             <div className="max-w-4xl mx-auto px-6">
               <h2 className="text-5xl md:text-7xl font-serif mb-6">
-                Ready to experience <span className="text-gold-400">true AI privacy</span>?
+                Ready for <span className="text-gold-400">Private AI</span>?
               </h2>
-              <p className="text-gray-400 text-lg mb-10">
-                No account. No data collection. Just pure, open‑source intelligence.
-              </p>
+              <p className="text-gray-400 text-lg mb-10">No account, no tracking, no data centres – just pure intelligence.</p>
               <Link
-                href="/chat"
+                href="/ki-bot"
                 className="inline-block px-12 py-5 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-xl font-semibold hover:scale-105 transition"
               >
-                Start chatting with KI →
+                Start Chatting with KI →
               </Link>
             </div>
           </section>

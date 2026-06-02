@@ -5,12 +5,14 @@ import { usePathname } from 'next/navigation';
 export function Footer() {
   const currentYear = new Date().getFullYear();
   const pathname = usePathname();
-  if (pathname === '/support') return null;
+  // Hide footer on full‑screen pages (chat, ki-bot)
+  if (pathname === '/chat' || pathname === '/ki-bot') return null;
 
   return (
     <footer className="relative z-20 border-t border-white/10 bg-black/80 backdrop-blur-xl mt-20">
       <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+          {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="text-gold-400 text-xl">⚡</span>
@@ -20,13 +22,13 @@ export function Footer() {
               Open‑source intelligence engine. Private AI that runs in your browser. Registered MSME (Udyam).
             </p>
             <div className="flex gap-4 pt-2">
-              <a href="https://github.com/CodeWander-666-github" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gold-400 transition">🐙 GitHub</a>
-              <a href="https://wa.me/916261031710" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gold-400 transition">💬 WhatsApp</a>
-              <a href="mailto:hello@kalki.tech" className="text-gray-400 hover:text-gold-400 transition">✉️ Email</a>
-              <a href="tel:+916261031710" className="text-gray-400 hover:text-gold-400 transition">📞 Phone</a>
+              <a href="https://github.com/CodeWander-666" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gold-400 transition">GitHub</a>
+              <a href="https://wa.me/916261031710" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gold-400 transition">WhatsApp</a>
+              <a href="mailto:hello@kalki.tech" className="text-gray-400 hover:text-gold-400 transition">Email</a>
             </div>
           </div>
 
+          {/* Explore */}
           <div>
             <h3 className="text-gold-400 text-xs font-semibold uppercase tracking-wider mb-4">Explore</h3>
             <ul className="space-y-2">
@@ -36,26 +38,26 @@ export function Footer() {
               <li><Link href="/plans" className="text-gray-400 hover:text-gold-400 text-sm">Plans</Link></li>
               <li><Link href="/about" className="text-gray-400 hover:text-gold-400 text-sm">About</Link></li>
               <li><Link href="/vision" className="text-gray-400 hover:text-gold-400 text-sm">Vision</Link></li>
-              <li><Link href="/blog" className="text-gray-400 hover:text-gold-400 text-sm">Blog</Link></li>
               <li><Link href="/hiring" className="text-gray-400 hover:text-gold-400 text-sm">Hiring</Link></li>
               <li><Link href="/support" className="text-gray-400 hover:text-gold-400 text-sm">Support</Link></li>
+              <li><Link href="/ki-bot" className="text-gray-400 hover:text-gold-400 text-sm">KI Bot</Link></li>
             </ul>
           </div>
 
+          {/* Services */}
           <div>
             <h3 className="text-gold-400 text-xs font-semibold uppercase tracking-wider mb-4">Services</h3>
             <ul className="space-y-2">
-              <li><Link href="/services/web-development" className="text-gray-400 hover:text-gold-400 text-sm">Web Development</Link></li>
-              <li><Link href="/services/seo" className="text-gray-400 hover:text-gold-400 text-sm">SEO Dominant</Link></li>
+              <li><Link href="/services/seo" className="text-gray-400 hover:text-gold-400 text-sm">AI SEO</Link></li>
               <li><Link href="/services/social-media" className="text-gray-400 hover:text-gold-400 text-sm">Social Media</Link></li>
+              <li><Link href="/services/gmb-seo" className="text-gray-400 hover:text-gold-400 text-sm">GMB SEO</Link></li>
               <li><Link href="/services/linkedin" className="text-gray-400 hover:text-gold-400 text-sm">LinkedIn Growth</Link></li>
+              <li><Link href="/services/web-development" className="text-gray-400 hover:text-gold-400 text-sm">Web Development</Link></li>
               <li><Link href="/services/ai-automation" className="text-gray-400 hover:text-gold-400 text-sm">AI Automation</Link></li>
-              <li><Link href="/services/for-startups" className="text-gray-400 hover:text-gold-400 text-sm">For Startups</Link></li>
-              <li><Link href="/services/for-developers" className="text-gray-400 hover:text-gold-400 text-sm">For Developers</Link></li>
-              <li><Link href="/services/for-small-businesses" className="text-gray-400 hover:text-gold-400 text-sm">For Small Business</Link></li>
             </ul>
           </div>
 
+          {/* Legal */}
           <div>
             <h3 className="text-gold-400 text-xs font-semibold uppercase tracking-wider mb-4">Legal</h3>
             <ul className="space-y-2 mb-6">

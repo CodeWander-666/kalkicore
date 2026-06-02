@@ -89,3 +89,24 @@ body.chat-page {
   width: 100%;
   height: 100%;
 }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Animated gradient border - pure border glow, no inner white */
+@keyframes borderGlow {
+  0% { border-color: #ff00cc; box-shadow: 0 0 5px #ff00cc; }
+  20% { border-color: #00ffcc; box-shadow: 0 0 10px #00ffcc; }
+  40% { border-color: #ffcc00; box-shadow: 0 0 15px #ffcc00; }
+  60% { border-color: #00ccff; box-shadow: 0 0 10px #00ccff; }
+  80% { border-color: #cc00ff; box-shadow: 0 0 15px #cc00ff; }
+  100% { border-color: #ff00cc; box-shadow: 0 0 5px #ff00cc; }
+}
+
+.chat-glowing-border {
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  animation: borderGlow 1.5s ease-in-out infinite;
+}
+.chat-glowing-border > * {
+  border-radius: 1rem;
+  background-color: rgba(0,0,0,0.4) !important;
+}

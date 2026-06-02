@@ -6,7 +6,6 @@ import { CommunityChat } from '@/components/ki-cloud/CommunityChat';
 import { Marketplace } from '@/components/ki-cloud/Marketplace';
 import { SocialFeed } from '@/components/ki-cloud/SocialFeed';
 import { GradientBackground } from '@/components/GradientBackground';
-import Link from 'next/link';
 
 type Tab = 'community' | 'marketplace' | 'bots' | 'social';
 
@@ -61,7 +60,7 @@ export default function KICloudPage() {
                       activeTab === 'bots' ? 'bg-cyan-500/20 text-cyan-400 border-l-2 border-cyan-400' : 'hover:bg-white/5'
                     }`}
                   >
-                    🤖 KI Bots
+                    🤖 KI Bots (Coming Soon)
                   </button>
                   <button
                     onClick={() => setActiveTab('social')}
@@ -81,26 +80,10 @@ export default function KICloudPage() {
                 {activeTab === 'community' && <CommunityChat />}
                 {activeTab === 'marketplace' && <Marketplace />}
                 {activeTab === 'bots' && (
-                  <div className="flex items-center justify-center h-full py-12">
-                    <Link
-                      href="/ki-bot"
-                      className="group relative block max-w-md w-full transition-transform duration-500 hover:scale-105"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-gold-400 to-pink-500 rounded-3xl blur-2xl opacity-50 group-hover:opacity-80 transition duration-500" />
-                      <div className="relative glass-card rounded-3xl p-8 text-center border border-white/20 overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition duration-500" />
-                        <div className="text-7xl mb-4 animate-pulse">🤖✨</div>
-                        <h3 className="text-3xl font-serif font-bold bg-gradient-to-r from-cyan-400 via-gold-400 to-pink-500 bg-clip-text text-transparent mb-2">
-                          KI Chat
-                        </h3>
-                        <p className="text-gray-300 text-sm mb-4">
-                          Your private, local AI chatbot – runs entirely in your browser.
-                        </p>
-                        <div className="inline-block px-6 py-2 rounded-full bg-gradient-to-r from-cyan-600 to-gold-600 text-white font-semibold group-hover:scale-105 transition">
-                          Launch KI Bot →
-                        </div>
-                      </div>
-                    </Link>
+                  <div className="text-center py-20 text-gray-400">
+                    <div className="text-6xl mb-4">🤖</div>
+                    <h3 className="text-2xl font-serif mb-2">KI Bots</h3>
+                    <p>Coming soon – submit your own AI bots and earn KI credits.</p>
                   </div>
                 )}
                 {activeTab === 'social' && <SocialFeed />}

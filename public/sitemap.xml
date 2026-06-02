@@ -51,7 +51,37 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://kalkicore.vercel.app/blog</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kalkicore.vercel.app/blog/[slug]</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://kalkicore.vercel.app/chat</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kalkicore.vercel.app/cookie</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kalkicore.vercel.app/gdpr</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kalkicore.vercel.app/ki-bot</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kalkicore.vercel.app/privacy</loc>
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
@@ -108,6 +138,11 @@
   <url>
     <loc>https://kalkicore.vercel.app/services/web-development</loc>
     <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kalkicore.vercel.app/terms</loc>
+    <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
 </urlset>
