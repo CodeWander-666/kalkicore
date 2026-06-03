@@ -4,6 +4,9 @@ import { NodeTracker } from '../components/NodeTracker';
 import { GradientBackground } from '../components/GradientBackground';
 import Link from 'next/link';
 
+// Force dynamic rendering to avoid static generation issues with client hooks
+export const dynamic = 'force-dynamic';
+
 // Simple SVG icons (no emojis)
 const IconSpark = () => (
   <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +117,7 @@ export default function Home() {
           </section>
         </ScrollReveal>
 
-        {/* KI Bot Section (Chatbot) */}
+        {/* KI Bot Section */}
         <ScrollReveal>
           <section className="py-24">
             <div className="max-w-6xl mx-auto px-6">
@@ -181,7 +184,7 @@ export default function Home() {
           </section>
         </ScrollReveal>
 
-        {/* Services Grid (with video placeholders) */}
+        {/* Services Grid */}
         <ScrollReveal>
           <section className="py-24">
             <div className="max-w-7xl mx-auto px-6">

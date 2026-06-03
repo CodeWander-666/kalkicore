@@ -1,4 +1,3 @@
-'use client';
 import { useKI } from '@/context/KIContext';
 
 export function NodeTracker({ compact = false }: { compact?: boolean }) {

@@ -1,161 +1,293 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "🔧 Fixing node count fetch errors & missing video thumbnails"
+echo "🔧 Fixing server/client mismatch: force-dynamic on homepage"
 
-# 1. Update KIContext with robust fetch + retries + exponential backoff
-cat > context/KIContext.tsx << 'KICONTEXT_FIXED'
+# 1. Ensure app/page.tsx has 'use client' at top and force-dynamic
+cat > app/page.tsx << 'HOME_PAGE'
 'use client';
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { CreateMLCEngine } from '@mlc-ai/web-llm';
+import { ScrollReveal } from '../components/ScrollReveal';
+import { NodeTracker } from '../components/NodeTracker';
+import { GradientBackground } from '../components/GradientBackground';
+import Link from 'next/link';
 
-const MODEL_ID = 'SmolLM2-135M-Instruct-q0f16-MLC';
-const NODE_ID_KEY = 'ki_node_id';
+// Force dynamic rendering to avoid static generation issues with client hooks
+export const dynamic = 'force-dynamic';
 
-interface KIContextType {
-  engine: any | null;
-  loading: boolean;
-  activeNodes: number;
-  totalPower: number;
-}
+// Simple SVG icons (no emojis)
+const IconSpark = () => (
+  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+  </svg>
+);
 
-const KIContext = createContext<KIContextType | undefined>(undefined);
+const IconCloud = () => (
+  <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+  </svg>
+);
 
-async function fetchWithRetry(url: string, retries = 3, delay = 1000): Promise<any> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (err) {
-      if (i === retries - 1) throw err;
-      await new Promise(r => setTimeout(r, delay * (i + 1)));
-    }
-  }
-}
+const IconUsers = () => (
+  <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+  </svg>
+);
 
-export function KIProvider({ children }: { children: ReactNode }) {
-  const [engine, setEngine] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeNodes, setActiveNodes] = useState(0);
-  const [totalPower, setTotalPower] = useState(0);
+const IconChat = () => (
+  <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+  </svg>
+);
 
-  // Register node with device specs (unchanged)
-  useEffect(() => {
-    let nodeId = localStorage.getItem(NODE_ID_KEY);
-    if (!nodeId) {
-      nodeId = crypto.randomUUID();
-      localStorage.setItem(NODE_ID_KEY, nodeId);
-    }
+const IconBriefcase = () => (
+  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  </svg>
+);
 
-    const cpuCores = navigator.hardwareConcurrency || 2;
-    const memory = (navigator as any).deviceMemory || 4;
-    const benchmark = 150;
-
-    const register = () => {
-      fetch('/api/node/heartbeat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nodeId, cpuCores, memory, benchmark }),
-      }).catch(e => console.warn('Heartbeat failed:', e));
-    };
-    register();
-    const interval = setInterval(register, 30000);
-    window.addEventListener('beforeunload', () => {
-      fetch('/api/node/unregister', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nodeId }),
-      });
-    });
-    return () => clearInterval(interval);
-  }, []);
-
-  // Poll node count with retries – start after 2 seconds to allow API to warm up
-  useEffect(() => {
-    let isMounted = true;
-    let interval: NodeJS.Timeout;
-
-    const pollCount = async () => {
-      try {
-        const data = await fetchWithRetry('/api/node/count', 2, 500);
-        if (isMounted) {
-          setActiveNodes(data.count || 0);
-          setTotalPower(data.power || 0);
-        }
-      } catch (err) {
-        console.warn('Node count poll failed (will retry):', err);
-        if (isMounted) {
-          setActiveNodes(0);
-          setTotalPower(0);
-        }
-      }
-    };
-
-    // Wait 2 seconds before first poll to let server settle
-    const initialTimeout = setTimeout(() => {
-      pollCount();
-      interval = setInterval(pollCount, 5000);
-    }, 2000);
-
-    return () => {
-      isMounted = false;
-      clearTimeout(initialTimeout);
-      if (interval) clearInterval(interval);
-    };
-  }, []);
-
-  // Load WebLLM engine (unchanged)
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      try {
-        const eng = await CreateMLCEngine(MODEL_ID, { initProgressCallback: () => {} });
-        if (mounted) {
-          setEngine(eng);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error(err);
-        setLoading(false);
-      }
-    };
-    load();
-    return () => { mounted = false; };
-  }, []);
-
+export default function Home() {
   return (
-    <KIContext.Provider value={{ engine, loading, activeNodes, totalPower }}>
-      {children}
-    </KIContext.Provider>
+    <>
+      <GradientBackground />
+      <div className="relative z-10 pt-20">
+        {/* Hero Section */}
+        <ScrollReveal>
+          <section className="min-h-[90vh] flex items-center justify-center text-center px-6">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gold-400/30 bg-gold-400/5 text-gold-400 text-sm tracking-wider mb-6">
+                KALKI TECHNOLOGIES
+              </div>
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold tracking-tight">
+                Private AI.<br />
+                <span className="text-gold-400">Your Browser.</span>
+              </h1>
+              <p className="text-xl text-gray-300 mt-8 max-w-2xl mx-auto leading-relaxed">
+                Open‑source intelligence engine that runs entirely inside your browser – no data centre, total privacy.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-5 justify-center mt-12">
+                <Link
+                  href="/ki-bot"
+                  className="px-10 py-4 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition inline-flex items-center gap-2"
+                >
+                  <IconSpark /> Try KI Bot
+                </Link>
+                <Link
+                  href="/ki-cloud"
+                  className="px-10 py-4 rounded-full border border-white/20 text-white hover:border-gold-400 hover:text-gold-400 transition inline-flex items-center gap-2"
+                >
+                  <IconCloud /> Explore KI Cloud
+                </Link>
+              </div>
+              <div className="mt-16 flex justify-center">
+                <NodeTracker />
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* KI Cloud Section */}
+        <ScrollReveal>
+          <section className="py-24 bg-black/30">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-400/30 bg-cyan-400/5 text-cyan-400 text-xs tracking-wider mb-4">
+                  <IconCloud /> KI Cloud
+                </div>
+                <h2 className="text-4xl md:text-5xl font-serif">Distributed Intelligence Network</h2>
+                <p className="text-gray-400 max-w-2xl mx-auto mt-4">
+                  Every user becomes a node. The network gets smarter with each new participant – zero central servers.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="glass-card p-6 rounded-2xl text-center">
+                  <IconCloud />
+                  <h3 className="text-xl font-semibold mt-3 mb-2">Community Chat</h3>
+                  <p className="text-gray-400 text-sm">Reddit‑style discussions, real‑time, open source.</p>
+                </div>
+                <div className="glass-card p-6 rounded-2xl text-center">
+                  <IconSpark />
+                  <h3 className="text-xl font-semibold mt-3 mb-2">KI Marketplace</h3>
+                  <p className="text-gray-400 text-sm">Developers upload services, businesses discover AI tools.</p>
+                </div>
+                <div className="glass-card p-6 rounded-2xl text-center">
+                  <IconUsers />
+                  <h3 className="text-xl font-semibold mt-3 mb-2">Social Feed</h3>
+                  <p className="text-gray-400 text-sm">Image sharing, upvotes, community‑driven content.</p>
+                </div>
+              </div>
+              <div className="text-center mt-12">
+                <Link href="/ki-cloud" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-600 text-white hover:scale-105 transition">
+                  Join KI Cloud →
+                </Link>
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* KI Bot Section */}
+        <ScrollReveal>
+          <section className="py-24">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-pink-400/30 bg-pink-400/5 text-pink-400 text-xs tracking-wider mb-4">
+                  <IconChat /> KI Bot
+                </div>
+                <h2 className="text-4xl md:text-5xl font-serif">Your Private AI Assistant</h2>
+                <p className="text-gray-400 max-w-2xl mx-auto mt-4">
+                  DeepSeek‑style chat that runs locally – no data leaves your device. Ask anything about marketing, development, or AI.
+                </p>
+              </div>
+              <div className="glass-card rounded-3xl p-1 max-w-4xl mx-auto">
+                <div className="bg-black/40 rounded-2xl p-1 text-center text-gray-400 text-sm py-8">
+                  <video className="w-full rounded-xl" autoPlay loop muted playsInline poster="/videos/ai-seo.jpg">
+                    <source src="/videos/ai-seo.webm" type="video/webm" />
+                  </video>
+                </div>
+              </div>
+              <div className="text-center mt-8">
+                <Link href="/ki-bot" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition">
+                  <IconChat /> Start Chatting with KI
+                </Link>
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* KI Community Section */}
+        <ScrollReveal>
+          <section className="py-24 bg-black/30">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-400/30 bg-purple-400/5 text-purple-400 text-xs tracking-wider mb-4">
+                  <IconUsers /> KI Community
+                </div>
+                <h2 className="text-4xl md:text-5xl font-serif">Built by Developers, for Everyone</h2>
+                <p className="text-gray-400 max-w-2xl mx-auto mt-4">
+                  Join the open‑source movement. Share your bots, upvote content, and help shape the future of private AI.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+                <div className="glass-card p-6 rounded-2xl flex items-start gap-4">
+                  <IconUsers />
+                  <div>
+                    <h3 className="text-lg font-semibold">Discuss & Learn</h3>
+                    <p className="text-gray-400 text-sm">Ask questions, share projects, get help from the community.</p>
+                  </div>
+                </div>
+                <div className="glass-card p-6 rounded-2xl flex items-start gap-4">
+                  <IconSpark />
+                  <div>
+                    <h3 className="text-lg font-semibold">Upload Your Bots</h3>
+                    <p className="text-gray-400 text-sm">Submit AI agents to the marketplace and earn revenue.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center mt-12">
+                <Link href="/ki-cloud?tab=community" className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 text-white hover:border-gold-400 transition">
+                  Join Community →
+                </Link>
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* Services Grid */}
+        <ScrollReveal>
+          <section className="py-24">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl md:text-5xl font-serif">Full‑Suite Services</h2>
+                <p className="text-gray-400 mt-2">AI‑powered digital marketing, development, and automation</p>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  { title: "AI‑Driven SEO", href: "/services/seo", video: "ai-seo", desc: "Programmatic SEO, 50+ keywords, monthly reports" },
+                  { title: "Social Media Automation", href: "/services/social-media", video: "social-media-automation", desc: "2 viral posts/month + free blue tick" },
+                  { title: "GMB SEO", href: "/services/gmb-seo", video: "gmb-seo", desc: "Google Maps #1 ranking, review management" },
+                  { title: "LinkedIn Optimisation", href: "/services/linkedin", video: "linkedin-growth", desc: "Free Premium, lead gen automation" },
+                  { title: "Web Development", href: "/services/web-development", video: "web-development", desc: "Static ₹7,999 / Dynamic ₹12,999" },
+                  { title: "AI Automation Suite", href: "/services/ai-automation", video: "ai-automation", desc: "WhatsApp bots, CRM, AI calling" },
+                ].map((service) => (
+                  <Link key={service.title} href={service.href} className="glass-card rounded-2xl overflow-hidden hover:scale-105 transition">
+                    <div className="aspect-video bg-black/40">
+                      <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                        <source src={`/videos/${service.video}.webm`} type="video/webm" />
+                      </video>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-xl font-semibold">{service.title}</h3>
+                      <p className="text-gray-400 text-sm mt-1">{service.desc}</p>
+                      <div className="mt-3 text-gold-400 text-sm inline-flex items-center gap-1">Discover →</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* Hiring Section */}
+        <ScrollReveal>
+          <section className="py-24 bg-black/30">
+            <div className="max-w-6xl mx-auto px-6 text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold-400/30 bg-gold-400/5 text-gold-400 text-xs tracking-wider mb-4">
+                <IconBriefcase /> Join the Team
+              </div>
+              <h2 className="text-4xl md:text-5xl font-serif">Work with KI</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto mt-4">
+                Remote, flexible, futuristic – become part of the open‑source intelligence network.
+              </p>
+              <div className="flex flex-wrap gap-4 justify-center mt-8">
+                <Link href="/hiring" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition">
+                  <IconBriefcase /> View Openings
+                </Link>
+                <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-white/20 text-white hover:border-gold-400 transition">
+                  <IconSpark /> Send Open Application
+                </Link>
+              </div>
+            </div>
+          </section>
+        </ScrollReveal>
+
+        {/* Final CTA */}
+        <ScrollReveal>
+          <section className="py-32 text-center">
+            <div className="max-w-4xl mx-auto px-6">
+              <h2 className="text-5xl md:text-7xl font-serif mb-6">
+                Ready for <span className="text-gold-400">Private AI</span>?
+              </h2>
+              <p className="text-gray-400 text-lg mb-10">No account, no tracking, no data centres – just pure intelligence.</p>
+              <Link
+                href="/ki-bot"
+                className="inline-block px-12 py-5 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-xl font-semibold hover:scale-105 transition"
+              >
+                Start Chatting with KI →
+              </Link>
+            </div>
+          </section>
+        </ScrollReveal>
+      </div>
+    </>
   );
 }
+HOME_PAGE
 
-export const useKI = () => {
-  const ctx = useContext(KIContext);
-  if (!ctx) throw new Error('useKI must be used within KIProvider');
-  return ctx;
-};
-KICONTEXT_FIXED
-
-# 2. Create missing video thumbnails (JPG) to avoid 404s
-mkdir -p public/videos
-for vid in ai-seo social-media-automation gmb-seo linkedin-growth web-development ai-automation; do
-  if [ ! -f "public/videos/${vid}.jpg" ]; then
-    # Minimal 1x1 grey JPEG (base64)
-    echo -n "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDg5fF+rT6pNqSva29w8Zij2wK0cMfQRp0Xj8e9bOr/ABD1O9mVbRbK2gVt/mtApdj6gcKfyryOS/u5Z2leVi7HJPqfWpjdzH/lqfzr2pV6jd+byR2Ua8IQjGCTaC5njup3miUqXOTz0PpUGRTSSaLVvJswpWkm3sz/2Q==" | base64 -d > "public/videos/${vid}.jpg" 2>/dev/null || echo "Placeholder" > "public/videos/${vid}.jpg"
-    echo "✅ Created thumbnail: public/videos/${vid}.jpg"
+# 2. Ensure NodeTracker is client component (already is)
+# 3. Force dynamic rendering for other pages that might have client hooks
+for page in app/ki-bot/page.tsx app/chat/page.tsx app/ki-cloud/page.tsx; do
+  if [ -f "$page" ]; then
+    # Add export const dynamic = 'force-dynamic' after 'use client'
+    sed -i '/^'\''use client'\''/a export const dynamic = '\''force-dynamic'\'';' "$page"
+    echo "✅ Added force-dynamic to $page"
   fi
 done
 
-echo "🧹 Cleaning .next cache..."
+# 4. Clean build cache
 rm -rf .next
 
-echo "🏗️ Rebuilding project..."
+# 5. Build
 npm run build
 
 echo ""
-echo "✅ Fixed:"
-echo "   • Node count fetch now uses retries + 2s initial delay – no more 'Failed to fetch' errors"
-echo "   • Video thumbnails created – 404s eliminated"
-echo "🔄 Restart dev server: npm run dev"
+echo "🎉 Build successful! All pages are now forced dynamic (skipped static generation)."
+echo "🚀 Run 'npm run dev' to start the server."

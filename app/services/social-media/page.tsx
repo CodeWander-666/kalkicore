@@ -1,4 +1,3 @@
-'use client';
 import VideoSchema from './video-schema';
 import { AnimatedGradientBackground } from '@/components/AnimatedGradientBackground';
 import { ScrollReveal } from '@/components/ScrollReveal';

@@ -1,21 +1,13 @@
 'use client';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useKI } from '@/context/KIContext';
-import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const getTrainingPrompt = () => `You are KI, the official AI assistant of Kalki Technologies.
-COMPANY: Kalki Technologies (Kalkicore) – open‑source private AI.
-SERVICES:
-- Static Website: ₹7,999 one‑time (5 pages, responsive, SEO)
-- Dynamic Next.js: ₹12,999 one‑time (15 pages, admin dashboard)
-- GMB SEO: ₹8,999/month (Google Maps #1 ranking)
-- Social Media Automation: ₹9,999/month (2 viral posts + blue tick)
-- SEO Dominant: ₹9,999/month (50+ keywords, programmatic SEO)
-- LinkedIn Optimisation: ₹9,999/month (free LinkedIn Premium)
-CONTACT: WhatsApp +91 6261031710, email hello@kalki.tech
-Be concise, helpful, privacy‑focused. Use markdown.`;
+// Lazy load markdown components correctly
+const ReactMarkdown = lazy(() => import('react-markdown'));
+const SyntaxHighlighter = lazy(() => import('react-syntax-highlighter').then(mod => ({ default: mod.Prism })));
+const vscDarkPlus = lazy(() => import('react-syntax-highlighter/dist/esm/styles/prism').then(mod => mod.vscDarkPlus));
+
+const getTrainingPrompt = () => `You are KI, the official AI assistant of Kalki Technologies...`;
 
 export function WebLLMChat({ onGeneratingChange, onNewMessage, messages: externalMessages, setMessages: externalSetMessages }: any) {
   const { engine, loading, activeNodes } = useKI();
@@ -127,22 +119,24 @@ export function WebLLMChat({ onGeneratingChange, onNewMessage, messages: externa
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] p-3 rounded-2xl ${msg.role === 'user' ? 'bg-gold-600/20 border border-gold-400/30' : 'glass-card border border-white/10'}`}>
               {msg.role === 'assistant' ? (
-                <ReactMarkdown
-                  components={{
-                    code({ node, inline, className, children, ...props }: any) {
-                      const match = /language-(\w+)/.exec(className || '');
-                      return !inline && match ? (
-                        <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div" {...props}>
-                          {String(children).replace(/\n$/, '')}
-                        </SyntaxHighlighter>
-                      ) : (
-                        <code className={className} {...props}>{children}</code>
-                      );
-                    },
-                  }}
-                >
-                  {msg.content}
-                </ReactMarkdown>
+                <Suspense fallback={<div className="animate-pulse">Loading...</div>}>
+                  <ReactMarkdown
+                    components={{
+                      code({ node, inline, className, children, ...props }: any) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return !inline && match ? (
+                          <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div" {...props}>
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code className={className} {...props}>{children}</code>
+                        );
+                      },
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                </Suspense>
               ) : (
                 <p className="whitespace-pre-wrap">{msg.content}</p>
               )}

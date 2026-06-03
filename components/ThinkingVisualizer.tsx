@@ -1,4 +1,3 @@
-'use client';
 import { useKI } from '@/context/KIContext';
 import { motion } from 'framer-motion';
 

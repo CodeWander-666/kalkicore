@@ -1,4 +1,3 @@
-'use client';
 import { ScrollReveal } from '../../components/ScrollReveal';
 import { AnimatedGradient } from '../../components/AnimatedGradient';
 import Link from 'next/link';
