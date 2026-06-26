@@ -1,3 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+
+echo "🎯 Elevating brand presence with large label and tagline..."
+
+cat > app/page.tsx << 'EOF'
 'use client';
 import { useEffect, useRef } from 'react';
 
@@ -196,3 +202,12 @@ export default function Home() {
     </>
   );
 }
+EOF
+
+# Rebuild
+rm -rf .next
+npm run build
+
+echo ""
+echo "✅ Done! The page now features a bold, large-format brand display with tagline."
+echo "🌐 It will redirect to https://www.kalki-intelligence.in/ after 4 seconds."
