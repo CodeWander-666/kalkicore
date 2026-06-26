@@ -5,12 +5,10 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Redirect after 4 seconds
     const timer = setTimeout(() => {
       window.location.href = 'https://kalki-intelligence.in';
     }, 4000);
 
-    // Load Three.js dynamically (to keep bundle small)
     const loadThree = async () => {
       const THREE = await import('three');
       const scene = new THREE.Scene();
@@ -22,13 +20,12 @@ export default function Home() {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       containerRef.current?.appendChild(renderer.domElement);
 
-      // Cyan & Pink neon grid – using a custom grid with LineSegments
+      // Cyan & Pink neon grid
       const gridHelper = new THREE.GridHelper(30, 30, 0x00ffff, 0xff00ff);
       gridHelper.material.transparent = true;
       gridHelper.material.opacity = 0.6;
       scene.add(gridHelper);
 
-      // Add a second rotated grid for depth
       const grid2 = new THREE.GridHelper(30, 30, 0xff00ff, 0x00ffff);
       grid2.rotation.x = Math.PI / 4;
       grid2.rotation.y = Math.PI / 4;
@@ -36,7 +33,7 @@ export default function Home() {
       grid2.material.opacity = 0.3;
       scene.add(grid2);
 
-      // Floating particles
+      // Particles
       const particlesGeometry = new THREE.BufferGeometry();
       const particlesCount = 2000;
       const posArray = new Float32Array(particlesCount * 3);
@@ -54,7 +51,7 @@ export default function Home() {
       const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
       scene.add(particlesMesh);
 
-      // Glowing torus knot (centerpiece)
+      // Torus knot
       const geometry = new THREE.TorusKnotGeometry(2, 0.6, 150, 20);
       const material = new THREE.MeshStandardMaterial({
         color: 0xff00ff,
@@ -78,7 +75,6 @@ export default function Home() {
       light2.position.set(-5, -5, 5);
       scene.add(light2);
 
-      // Animation loop
       let time = 0;
       const animate = () => {
         requestAnimationFrame(animate);
@@ -93,7 +89,6 @@ export default function Home() {
       };
       animate();
 
-      // Resize handler
       const handleResize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -109,7 +104,6 @@ export default function Home() {
     };
 
     loadThree();
-
     return () => clearTimeout(timer);
   }, []);
 
@@ -171,7 +165,6 @@ export default function Home() {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 1; }
         }
-        body { margin: 0; overflow: hidden; background: #0a0a0f; }
       `}</style>
     </>
   );

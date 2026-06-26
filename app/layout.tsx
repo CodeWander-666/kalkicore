@@ -5,9 +5,6 @@ export const metadata: Metadata = {
   title: 'Kalki Technologies – The New Era of Private AI',
   description: 'Kalki Technologies is redefining AI. Our new era is defined on kalki-intelligence.in – the future of open‑source, private intelligence.',
   robots: 'index, follow',
-  icons: {
-    icon: '/favicon.ico',
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
