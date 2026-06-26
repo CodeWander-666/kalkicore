@@ -1,265 +1,178 @@
 'use client';
-import { ScrollReveal } from '../components/ScrollReveal';
-import { NodeTracker } from '../components/NodeTracker';
-import { GradientBackground } from '../components/GradientBackground';
-import Link from 'next/link';
-
-// Force dynamic rendering to avoid static generation issues with client hooks
-export const dynamic = 'force-dynamic';
-
-// Simple SVG icons (no emojis)
-const IconSpark = () => (
-  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-  </svg>
-);
-
-const IconCloud = () => (
-  <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-  </svg>
-);
-
-const IconUsers = () => (
-  <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-  </svg>
-);
-
-const IconChat = () => (
-  <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-  </svg>
-);
-
-const IconBriefcase = () => (
-  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-  </svg>
-);
+import { useEffect, useRef } from 'react';
 
 export default function Home() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Redirect after 4 seconds
+    const timer = setTimeout(() => {
+      window.location.href = 'https://kalki-intelligence.in';
+    }, 4000);
+
+    // Load Three.js dynamically (to keep bundle small)
+    const loadThree = async () => {
+      const THREE = await import('three');
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 15;
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      containerRef.current?.appendChild(renderer.domElement);
+
+      // Cyan & Pink neon grid – using a custom grid with LineSegments
+      const gridHelper = new THREE.GridHelper(30, 30, 0x00ffff, 0xff00ff);
+      gridHelper.material.transparent = true;
+      gridHelper.material.opacity = 0.6;
+      scene.add(gridHelper);
+
+      // Add a second rotated grid for depth
+      const grid2 = new THREE.GridHelper(30, 30, 0xff00ff, 0x00ffff);
+      grid2.rotation.x = Math.PI / 4;
+      grid2.rotation.y = Math.PI / 4;
+      grid2.material.transparent = true;
+      grid2.material.opacity = 0.3;
+      scene.add(grid2);
+
+      // Floating particles
+      const particlesGeometry = new THREE.BufferGeometry();
+      const particlesCount = 2000;
+      const posArray = new Float32Array(particlesCount * 3);
+      for (let i = 0; i < particlesCount * 3; i++) {
+        posArray[i] = (Math.random() - 0.5) * 80;
+      }
+      particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+      const particlesMaterial = new THREE.PointsMaterial({
+        size: 0.1,
+        color: 0x00ffff,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending,
+      });
+      const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+      scene.add(particlesMesh);
+
+      // Glowing torus knot (centerpiece)
+      const geometry = new THREE.TorusKnotGeometry(2, 0.6, 150, 20);
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xff00ff,
+        emissive: 0x00ffff,
+        emissiveIntensity: 0.4,
+        metalness: 0.8,
+        roughness: 0.2,
+        wireframe: true,
+      });
+      const knot = new THREE.Mesh(geometry, material);
+      knot.position.y = 0.5;
+      scene.add(knot);
+
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0x404060);
+      scene.add(ambientLight);
+      const light1 = new THREE.PointLight(0x00ffff, 1, 30);
+      light1.position.set(5, 5, 5);
+      scene.add(light1);
+      const light2 = new THREE.PointLight(0xff00ff, 1, 30);
+      light2.position.set(-5, -5, 5);
+      scene.add(light2);
+
+      // Animation loop
+      let time = 0;
+      const animate = () => {
+        requestAnimationFrame(animate);
+        time += 0.005;
+        knot.rotation.x = time * 0.3;
+        knot.rotation.y = time * 0.5;
+        gridHelper.rotation.z = time * 0.02;
+        grid2.rotation.x = Math.PI / 4 + time * 0.01;
+        grid2.rotation.y = Math.PI / 4 + time * 0.02;
+        particlesMesh.rotation.y = time * 0.005;
+        renderer.render(scene, camera);
+      };
+      animate();
+
+      // Resize handler
+      const handleResize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      };
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        renderer.domElement.remove();
+        renderer.dispose();
+      };
+    };
+
+    loadThree();
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <>
-      <GradientBackground />
-      <div className="relative z-10 pt-20">
-        {/* Hero Section */}
-        <ScrollReveal>
-          <section className="min-h-[90vh] flex items-center justify-center text-center px-6">
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gold-400/30 bg-gold-400/5 text-gold-400 text-sm tracking-wider mb-6">
-                KALKI TECHNOLOGIES
-              </div>
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold tracking-tight">
-                Private AI.<br />
-                <span className="text-gold-400">Your Browser.</span>
-              </h1>
-              <p className="text-xl text-gray-300 mt-8 max-w-2xl mx-auto leading-relaxed">
-                Open‑source intelligence engine that runs entirely inside your browser – no data centre, total privacy.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-5 justify-center mt-12">
-                <Link
-                  href="/ki-bot"
-                  className="px-10 py-4 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition inline-flex items-center gap-2"
-                >
-                  <IconSpark /> Try KI Bot
-                </Link>
-                <Link
-                  href="/ki-cloud"
-                  className="px-10 py-4 rounded-full border border-white/20 text-white hover:border-gold-400 hover:text-gold-400 transition inline-flex items-center gap-2"
-                >
-                  <IconCloud /> Explore KI Cloud
-                </Link>
-              </div>
-              <div className="mt-16 flex justify-center">
-                <NodeTracker />
-              </div>
-            </div>
-          </section>
-        </ScrollReveal>
-
-        {/* KI Cloud Section */}
-        <ScrollReveal>
-          <section className="py-24 bg-black/30">
-            <div className="max-w-6xl mx-auto px-6">
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-400/30 bg-cyan-400/5 text-cyan-400 text-xs tracking-wider mb-4">
-                  <IconCloud /> KI Cloud
-                </div>
-                <h2 className="text-4xl md:text-5xl font-serif">Distributed Intelligence Network</h2>
-                <p className="text-gray-400 max-w-2xl mx-auto mt-4">
-                  Every user becomes a node. The network gets smarter with each new participant – zero central servers.
-                </p>
-              </div>
-              <div className="grid md:grid-cols-3 gap-8">
-                <div className="glass-card p-6 rounded-2xl text-center">
-                  <IconCloud />
-                  <h3 className="text-xl font-semibold mt-3 mb-2">Community Chat</h3>
-                  <p className="text-gray-400 text-sm">Reddit‑style discussions, real‑time, open source.</p>
-                </div>
-                <div className="glass-card p-6 rounded-2xl text-center">
-                  <IconSpark />
-                  <h3 className="text-xl font-semibold mt-3 mb-2">KI Marketplace</h3>
-                  <p className="text-gray-400 text-sm">Developers upload services, businesses discover AI tools.</p>
-                </div>
-                <div className="glass-card p-6 rounded-2xl text-center">
-                  <IconUsers />
-                  <h3 className="text-xl font-semibold mt-3 mb-2">Social Feed</h3>
-                  <p className="text-gray-400 text-sm">Image sharing, upvotes, community‑driven content.</p>
-                </div>
-              </div>
-              <div className="text-center mt-12">
-                <Link href="/ki-cloud" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-cyan-600 text-white hover:scale-105 transition">
-                  Join KI Cloud →
-                </Link>
-              </div>
-            </div>
-          </section>
-        </ScrollReveal>
-
-        {/* KI Bot Section */}
-        <ScrollReveal>
-          <section className="py-24">
-            <div className="max-w-6xl mx-auto px-6">
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-pink-400/30 bg-pink-400/5 text-pink-400 text-xs tracking-wider mb-4">
-                  <IconChat /> KI Bot
-                </div>
-                <h2 className="text-4xl md:text-5xl font-serif">Your Private AI Assistant</h2>
-                <p className="text-gray-400 max-w-2xl mx-auto mt-4">
-                  DeepSeek‑style chat that runs locally – no data leaves your device. Ask anything about marketing, development, or AI.
-                </p>
-              </div>
-              <div className="glass-card rounded-3xl p-1 max-w-4xl mx-auto">
-                <div className="bg-black/40 rounded-2xl p-1 text-center text-gray-400 text-sm py-8">
-                  <video className="w-full rounded-xl" autoPlay loop muted playsInline poster="/videos/ai-seo.jpg">
-                    <source src="/videos/ai-seo.webm" type="video/webm" />
-                  </video>
-                </div>
-              </div>
-              <div className="text-center mt-8">
-                <Link href="/ki-bot" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition">
-                  <IconChat /> Start Chatting with KI
-                </Link>
-              </div>
-            </div>
-          </section>
-        </ScrollReveal>
-
-        {/* KI Community Section */}
-        <ScrollReveal>
-          <section className="py-24 bg-black/30">
-            <div className="max-w-6xl mx-auto px-6">
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-400/30 bg-purple-400/5 text-purple-400 text-xs tracking-wider mb-4">
-                  <IconUsers /> KI Community
-                </div>
-                <h2 className="text-4xl md:text-5xl font-serif">Built by Developers, for Everyone</h2>
-                <p className="text-gray-400 max-w-2xl mx-auto mt-4">
-                  Join the open‑source movement. Share your bots, upvote content, and help shape the future of private AI.
-                </p>
-              </div>
-              <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-                <div className="glass-card p-6 rounded-2xl flex items-start gap-4">
-                  <IconUsers />
-                  <div>
-                    <h3 className="text-lg font-semibold">Discuss & Learn</h3>
-                    <p className="text-gray-400 text-sm">Ask questions, share projects, get help from the community.</p>
-                  </div>
-                </div>
-                <div className="glass-card p-6 rounded-2xl flex items-start gap-4">
-                  <IconSpark />
-                  <div>
-                    <h3 className="text-lg font-semibold">Upload Your Bots</h3>
-                    <p className="text-gray-400 text-sm">Submit AI agents to the marketplace and earn revenue.</p>
-                  </div>
-                </div>
-              </div>
-              <div className="text-center mt-12">
-                <Link href="/ki-cloud?tab=community" className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 text-white hover:border-gold-400 transition">
-                  Join Community →
-                </Link>
-              </div>
-            </div>
-          </section>
-        </ScrollReveal>
-
-        {/* Services Grid */}
-        <ScrollReveal>
-          <section className="py-24">
-            <div className="max-w-7xl mx-auto px-6">
-              <div className="text-center mb-12">
-                <h2 className="text-4xl md:text-5xl font-serif">Full‑Suite Services</h2>
-                <p className="text-gray-400 mt-2">AI‑powered digital marketing, development, and automation</p>
-              </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                  { title: "AI‑Driven SEO", href: "/services/seo", video: "ai-seo", desc: "Programmatic SEO, 50+ keywords, monthly reports" },
-                  { title: "Social Media Automation", href: "/services/social-media", video: "social-media-automation", desc: "2 viral posts/month + free blue tick" },
-                  { title: "GMB SEO", href: "/services/gmb-seo", video: "gmb-seo", desc: "Google Maps #1 ranking, review management" },
-                  { title: "LinkedIn Optimisation", href: "/services/linkedin", video: "linkedin-growth", desc: "Free Premium, lead gen automation" },
-                  { title: "Web Development", href: "/services/web-development", video: "web-development", desc: "Static ₹7,999 / Dynamic ₹12,999" },
-                  { title: "AI Automation Suite", href: "/services/ai-automation", video: "ai-automation", desc: "WhatsApp bots, CRM, AI calling" },
-                ].map((service) => (
-                  <Link key={service.title} href={service.href} className="glass-card rounded-2xl overflow-hidden hover:scale-105 transition">
-                    <div className="aspect-video bg-black/40">
-                      <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
-                        <source src={`/videos/${service.video}.webm`} type="video/webm" />
-                      </video>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-xl font-semibold">{service.title}</h3>
-                      <p className="text-gray-400 text-sm mt-1">{service.desc}</p>
-                      <div className="mt-3 text-gold-400 text-sm inline-flex items-center gap-1">Discover →</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        </ScrollReveal>
-
-        {/* Hiring Section */}
-        <ScrollReveal>
-          <section className="py-24 bg-black/30">
-            <div className="max-w-6xl mx-auto px-6 text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold-400/30 bg-gold-400/5 text-gold-400 text-xs tracking-wider mb-4">
-                <IconBriefcase /> Join the Team
-              </div>
-              <h2 className="text-4xl md:text-5xl font-serif">Work with KI</h2>
-              <p className="text-gray-400 max-w-2xl mx-auto mt-4">
-                Remote, flexible, futuristic – become part of the open‑source intelligence network.
-              </p>
-              <div className="flex flex-wrap gap-4 justify-center mt-8">
-                <Link href="/hiring" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-white font-semibold hover:scale-105 transition">
-                  <IconBriefcase /> View Openings
-                </Link>
-                <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-white/20 text-white hover:border-gold-400 transition">
-                  <IconSpark /> Send Open Application
-                </Link>
-              </div>
-            </div>
-          </section>
-        </ScrollReveal>
-
-        {/* Final CTA */}
-        <ScrollReveal>
-          <section className="py-32 text-center">
-            <div className="max-w-4xl mx-auto px-6">
-              <h2 className="text-5xl md:text-7xl font-serif mb-6">
-                Ready for <span className="text-gold-400">Private AI</span>?
-              </h2>
-              <p className="text-gray-400 text-lg mb-10">No account, no tracking, no data centres – just pure intelligence.</p>
-              <Link
-                href="/ki-bot"
-                className="inline-block px-12 py-5 rounded-full bg-gradient-to-r from-gold-600 to-cyan-600 text-xl font-semibold hover:scale-105 transition"
-              >
-                Start Chatting with KI →
-              </Link>
-            </div>
-          </section>
-        </ScrollReveal>
+      <div ref={containerRef} style={{ position: 'fixed', inset: 0, zIndex: 0 }} />
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        textAlign: 'center',
+        pointerEvents: 'none',
+        fontFamily: "'Courier New', monospace",
+        textShadow: '0 0 20px rgba(0,255,255,0.3)',
+      }}>
+        <h1 style={{
+          fontSize: 'clamp(2.5rem, 8vw, 5rem)',
+          fontWeight: 700,
+          background: 'linear-gradient(135deg, #00ffff, #ff00ff, #00ffff)',
+          backgroundSize: '200% auto',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          animation: 'shimmer 3s ease infinite',
+          letterSpacing: '0.2em',
+        }}>
+          KALKI TECHNOLOGIES
+        </h1>
+        <p style={{
+          fontSize: 'clamp(1rem, 2.5vw, 1.8rem)',
+          color: '#f0f0ff',
+          marginTop: '1rem',
+          letterSpacing: '0.1em',
+          opacity: 0.9,
+        }}>
+          THE NEW ERA IS DEFINED ON<br />
+          <strong style={{ color: '#00ffff', textShadow: '0 0 30px #00ffff' }}>kalki-intelligence.in</strong>
+        </p>
+        <div style={{
+          marginTop: '2rem',
+          fontSize: '0.9rem',
+          color: 'rgba(255,255,255,0.4)',
+          animation: 'pulse 1.5s ease-in-out infinite',
+          letterSpacing: '0.15em',
+        }}>
+          ◈ REDIRECTING IN 4 SECONDS ◈
+        </div>
       </div>
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 1; }
+        }
+        body { margin: 0; overflow: hidden; background: #0a0a0f; }
+      `}</style>
     </>
   );
 }
